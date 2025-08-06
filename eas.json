@@ -1,0 +1,32 @@
+{
+  "cli": {
+    "version": ">= 16.8.0",
+    "appVersionSource": "remote"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "env": {
+        "EXPO_ANDROID_GOOGLE_SERVICES_FILE": "./assets/google-services.json",
+              "GOOGLE_SERVICES_FILE": "./assets/google-services.json"
+      },
+      "ios": {
+        "simulator": true
+      }
+    },
+    "preview": {
+      "distribution": "internal",
+      "env": {
+        "EXPO_ANDROID_GOOGLE_SERVICES_FILE": "./assets/google-services.json"
+        
+      }
+    },
+    "production": {
+      "autoIncrement": true,
+      "env": {
+        "EXPO_ANDROID_GOOGLE_SERVICES_FILE": "./assets/google-services.json"
+      }
+    }
+  }
+}

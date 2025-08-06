@@ -1,0 +1,67 @@
+{
+  "homescreen": {
+    "weatherDetails":"Weather details of the current location will be here",
+    "welcome": "Welcome",
+    "subtitle": "Hello, {{name}}!"
+  },
+  "auth": {
+    "login": "Login",
+    "email": "Email Address",
+    "password": "Password",
+    "signIn": "Sign In",
+    "loginFailed": "Login Failed",
+    "register": "Register",
+    "signUp": "Sign Up",
+    "registerFailed": "Registration Failed",
+    "alreadyHaveAccount": "Already have an account? Sign in",
+    "logout": "Log out",
+    "logoutFailed": "Logout Failed",
+      "noAccount": "Don't have an account? Register here"
+  },
+  "alerts": {
+    "header": "Weather Alerts",
+    "errorPrefix": "⚠️",
+    "noAlerts": "No alerts at the moment 🎉",
+    "from": "From",
+    "to": "To",
+    "sender": "Sender",
+    "description": "Description"
+  },
+  "learn": {
+    "userName": "Weather Explorer",
+    "level": "Level {{level}}",
+    "xp": "XP",
+    "resourcesHub": "Resources Hub",
+    "startQuiz": "🎯 Test Your Knowledge",
+    "tasksChallenges": "Tasks & Challenges",
+    "taskRead": "Read 3 Articles",
+    "taskQuiz": "Complete 5 Quizzes",
+    "taskStreak": "7-Day Learning Streak",
+    "viewAll": "View all",
+    "xpEarned": "XP Earned!",
+    "completed": "Completed",
+    "finishQuiz": "Finish Quiz",
+    "dailyQuiz": "Daily Quiz",
+    "alreadyCompleted": "Already Completed",
+    "quizzesForResource": "Related Quizzes",
+    "noQuizzes": "There are no quizzes linked to this guide.",
+    "youAlreadyCompletedThisQuiz": "You have already completed this quiz today.",
+    "rewards": {
+      "taskComplete": "✅ Task Complete! +{{xp}} XP",
+      "levelUp": "📈 Level Up! You're now Level {{level}}!",
+      "badgeUnlocked": "🏅 Badge Unlocked! +{{xp}} XP"
+    },
+    "questionProgress": "Question {{current}} of {{total}}"
+    
+  },
+  "categories": {
+    "heatwave": "Heatwave",
+    "first_aid": "First Aid",
+    "flood": "Flood",
+    "sandstorm": "Sandstorm"
+  },
+    "settings": {
+    "title": "Settings",
+    "language": "Language"
+  }
+}
