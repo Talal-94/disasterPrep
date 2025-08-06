@@ -21,3 +21,4 @@ ios
 .expo
 functions/firebase-debug.log
 app.json
+google-services.json
