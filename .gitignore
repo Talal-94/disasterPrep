@@ -4,21 +4,16 @@
 
 expo-env.d.ts
 # @end expo-cli
+
+
+
 node_modules
 .DS_Store
 functions/lib/service-account-key.json
-full_guides_seed.json
-badges_seed.json
-quizzes_seed.json
-resources_seed.json
-seed_quizzes.js
-seed_resources.js
-resources.json
-quizzes.json
 .expo/devices.json
 android
 ios
 .expo
 functions/firebase-debug.log
-app.json
-google-services.json
+# app.json
+# google-services.json

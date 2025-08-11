@@ -1,44 +1,55 @@
-import { initLocalization } from "../utils/locales/i18n";
+import * as SplashScreen from "expo-splash-screen";
+import { Slot, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { Slot, SplashScreen, useRouter } from "expo-router";
-import { useAuthStore } from "../store/useAuthStore";
 import { onAuthStateChanged } from "@react-native-firebase/auth";
+import { useAuthStore } from "../store/useAuthStore";
+import { initLocalization } from "../utils/locales/i18n";
+import { auth } from "@/utils/firebasee";
 import GlobalRewardCelebration from "@/components/animation/GlobalRewardCelebration";
 import Toast from "react-native-toast-message";
-import { auth } from "@/utils/firebasee";
 
-SplashScreen.preventAutoHideAsync();
+SplashScreen.preventAutoHideAsync().catch(() => {});
 
 export default function RootLayout() {
-  const setUser = useAuthStore((state) => state.setUser);
+  const setUser = useAuthStore((s) => s.setUser);
   const router = useRouter();
   const [isReady, setIsReady] = useState(false);
 
+  // 1) Do all boot work, and ALWAYS set ready in finally
   useEffect(() => {
-    const init = async () => {
-      await initLocalization();
-      await SplashScreen.hideAsync();
-      setIsReady(true);
+    let cancelled = false;
+    (async () => {
+      try {
+        await initLocalization();
+      } catch (e) {
+        console.warn("initLocalization failed:", e);
+      } finally {
+        try {
+          await SplashScreen.hideAsync();
+        } catch (e) {
+          console.warn("SplashScreen.hideAsync failed:", e);
+        }
+        if (!cancelled) setIsReady(true);
+      }
+    })();
+    return () => {
+      cancelled = true;
     };
-    init();
   }, []);
 
-  // 2. Subscribe to Firebase Auth state
+  // 2) Subscribe to auth AFTER ready
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    if (!isReady) return;
+    const unsub = onAuthStateChanged(auth, (user) => {
       setUser(user);
       if (!user) {
-        router.replace("/(auth)/login");
-      } else {
-        setIsReady(true);
+        router.replace("/login"); // no group in URL path
       }
     });
-    return unsubscribe;
-  }, [router, setUser]);
+    return unsub;
+  }, [isReady, router, setUser]);
 
-  if (!isReady) {
-    return null;
-  }
+  if (!isReady) return null;
 
   return (
     <>

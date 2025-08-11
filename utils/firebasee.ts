@@ -26,15 +26,8 @@
 
 // utils/firebasee.ts
 
-import { getApp } from "@react-native-firebase/app";
-import { getAuth } from "@react-native-firebase/auth";
-import { getFirestore } from "@react-native-firebase/firestore";
+import { getAuth } from '@react-native-firebase/auth';
+import { getFirestore } from '@react-native-firebase/firestore';
 
-// Grab the default initialized Firebase “app” created by the native config plugin
-const app = getApp();
-
-// Then get the services tied to that app
-const auth = getAuth(app);
-const firestore = getFirestore(app);
-
-export { auth, firestore };
+export const auth = getAuth();
+export const firestore = getFirestore();

@@ -7,7 +7,6 @@ import {
   Switch,
   TouchableOpacity,
   Alert,
-  StyleSheet,
   ScrollView,
   SafeAreaView,
 } from "react-native";
@@ -18,10 +17,14 @@ import { auth } from "@/utils/firebasee";
 import { signOut } from "@react-native-firebase/auth";
 import { useRouter } from "expo-router";
 import { useAuthStore } from "../../../store/useAuthStore";
+import { StyleSheet, UnistylesRuntime } from "react-native-unistyles";
 
 const LANGUAGE_KEY = "user-language";
+const THEME_KEY = "settings.theme";
 
 export default function SettingsScreen() {
+  const [dark, setDark] = useState(UnistylesRuntime.themeName === "dark");
+
   const { t, i18n } = useTranslation();
   const [isArabic, setIsArabic] = useState(i18n.language === "ar");
   const router = useRouter();
@@ -32,11 +35,28 @@ export default function SettingsScreen() {
       setIsArabic(lang === "ar");
     });
   }, []);
+  useEffect(() => {
+    // hydrate from storage on first mount
+    (async () => {
+      const saved = await AsyncStorage.getItem(THEME_KEY);
+      if (saved === "dark" || saved === "light") {
+        UnistylesRuntime.setTheme(saved);
+        setDark(saved === "dark");
+      }
+    })();
+  }, []);
 
   const toggleLanguage = async () => {
     const newLang = isArabic ? "en" : "ar";
     await changeLanguage(newLang);
     setIsArabic(!isArabic);
+  };
+
+  const onToggleTheme = async (value: boolean) => {
+    setDark(value);
+    const next = value ? "dark" : "light";
+    UnistylesRuntime.setTheme(next); // <- instant theme swap
+    await AsyncStorage.setItem(THEME_KEY, next);
   };
 
   const handleLogout = async () => {
@@ -66,6 +86,14 @@ export default function SettingsScreen() {
           </View>
         </View>
 
+        <View style={styles.card}>
+          <Text style={styles.title}>Appearance</Text>
+          <View style={styles.row}>
+            <Text style={styles.label}>Dark mode</Text>
+            <Switch value={dark} onValueChange={onToggleTheme} />
+          </View>
+        </View>
+
         <TouchableOpacity onPress={handleLogout} style={styles.logoutBtn}>
           <Text style={styles.logoutText}>{t("auth.logout")}</Text>
         </TouchableOpacity>
@@ -82,7 +110,7 @@ export default function SettingsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = StyleSheet.create((theme) => ({
   container: {
     padding: 20,
   },
@@ -119,6 +147,17 @@ const styles = StyleSheet.create({
     fontWeight: "500",
     color: "#555",
   },
+  title: {
+    color: theme.colors.text,
+    fontSize: 18,
+    fontWeight: "700",
+    marginBottom: theme.spacing(1),
+  },
+  row: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
   logoutBtn: {
     backgroundColor: "#FF3B30",
     paddingVertical: 14,
@@ -131,4 +170,4 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "bold",
   },
-});
+}));
