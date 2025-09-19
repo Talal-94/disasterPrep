@@ -1,41 +1,18 @@
-// import { useEffect } from "react";
-// import { useTranslation } from "react-i18next";
-// import { Text, View } from "react-native";
-// import { registerUserDevice } from "../../utils/registerUserDevice";
-
-// export default function HomeScreen() {
-//   const { t } = useTranslation();
-
-//   useEffect(() => {
-//     registerUserDevice();
-//   }, []);
-
-//   return (
-//     <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
-//       <Text>{t("homescreen.weatherDetails")}</Text>
-//       <Text>{t("homescreen.welcome")}</Text>
-//     </View>
-//   );
-// }
-
-// app/(tabs)/index.tsx
 import { useEffect, useState } from "react";
-import {
-  View,
-  ScrollView,
-  ActivityIndicator,
-  Text,
-  StyleSheet,
-  SafeAreaView,
-} from "react-native";
+import { View, ScrollView, ActivityIndicator } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { StyleSheet } from "react-native-unistyles";
 import { useTranslation } from "react-i18next";
+
 import useLocation from "../../../utils/location";
 import { registerUserDevice } from "../../../utils/registerUserDevice";
 import { getWeatherData } from "../../../services/weather";
-import CurrentWeatherCard from "../../../components/home/CurrentWeatherCard";
-import HourlyForecast from "../../../components/home/HourlyForecast";
-import DailyForecast from "../../../components/home/DailyForecast";
-import WeatherMetricsGrid from "../../../components/home/WeatherMetricsGrid ";
+
+import Text from "@/components/ui/Text";
+import CurrentWeatherCard from "@/components/home/CurrentWeatherCard";
+import HourlyForecast from "@/components/home/HourlyForecast";
+import DailyForecast from "@/components/home/DailyForecast";
+import WeatherMetricsGrid from "@/components/home/WeatherMetricsGrid";
 
 export default function HomeScreen() {
   const { t } = useTranslation();
@@ -66,17 +43,21 @@ export default function HomeScreen() {
 
   if (errorMsg) {
     return (
-      <View style={styles.center}>
-        <Text>{t("homescreen.locationError", { error: errorMsg })}</Text>
-      </View>
+      <SafeAreaView style={styles.safe} edges={["top", "left", "right"]}>
+        <View style={styles.center}>
+          <Text>{t("homescreen.locationError", { error: errorMsg })}</Text>
+        </View>
+      </SafeAreaView>
     );
   }
 
   if (loading) {
     return (
-      <View style={styles.center}>
-        <ActivityIndicator size="large" />
-      </View>
+      <SafeAreaView style={styles.safe} edges={["top", "left", "right"]}>
+        <View style={styles.center}>
+          <ActivityIndicator size="large" />
+        </View>
+      </SafeAreaView>
     );
   }
 
@@ -95,13 +76,15 @@ export default function HomeScreen() {
   }));
 
   return (
-    <SafeAreaView>
-      <ScrollView contentContainerStyle={styles.container}>
+    <SafeAreaView style={styles.safe}>
+      <ScrollView contentContainerStyle={styles.content}>
         <CurrentWeatherCard
-          city={city || t("homescreen.unknownLocation")}
+          city={city || t("homescreen.unknownLocation", "Unknown")}
           description={current.weather[0].description}
           temp={current.temp}
           feelsLike={current.feels_like}
+          conditionId={current.weather[0]?.id}
+          iconCode={current.weather[0]?.icon}
         />
 
         <WeatherMetricsGrid
@@ -111,21 +94,29 @@ export default function HomeScreen() {
           pressure={current.pressure}
         />
 
-        <HourlyForecast data={hourlyData} />
+        <HourlyForecast
+          data={hourlyData}
+          title={t("homescreen.hourlyForecast", "Hourly Forecast")}
+        />
 
-        <DailyForecast data={dailyData} />
+        <DailyForecast
+          data={dailyData}
+          title={t("homescreen.dailyForecast", "Daily Forecast")}
+        />
       </ScrollView>
     </SafeAreaView>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    paddingBottom: 20,
+const styles = StyleSheet.create((theme) => ({
+  safe: { flex: 1, backgroundColor: theme.colors.background },
+  content: {
+    paddingBottom: theme.spacing(3),
   },
   center: {
     flex: 1,
-    justifyContent: "center",
     alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: theme.colors.background,
   },
-});
+}));

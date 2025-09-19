@@ -43,10 +43,9 @@
 //     }
 // }
 
-// utils/registerUserDevice.ts
 import * as Location from "expo-location";
 import { registerForPushToken } from "./notifications";
-import { firestore } from "./firebasee"; // exports getFirestore()
+import { firestore } from "./firebasee"; 
 import {
     doc,
     getDoc,
@@ -63,7 +62,6 @@ export async function registerUserDevice() {
         const currentLat = coords.latitude;
         const currentLon = coords.longitude;
 
-        // modular RNFB: use doc/getDoc/setDoc/updateDoc with the db instance
         const ref = doc(firestore, "device_tokens", token);
         const snap = await getDoc(ref);
 

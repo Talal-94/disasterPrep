@@ -1,173 +1,202 @@
-// app/(tabs)/settings/SettingsScreen.tsx
-
-import { useEffect, useState } from "react";
-import {
-  View,
-  Text,
-  Switch,
-  TouchableOpacity,
-  Alert,
-  ScrollView,
-  SafeAreaView,
-} from "react-native";
-import { useTranslation } from "react-i18next";
+import React from "react";
+import { View, Switch, StatusBar } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { changeLanguage } from "../../../utils/locales/i18n";
-import { auth } from "@/utils/firebasee";
-import { signOut } from "@react-native-firebase/auth";
-import { useRouter } from "expo-router";
-import { useAuthStore } from "../../../store/useAuthStore";
 import { StyleSheet, UnistylesRuntime } from "react-native-unistyles";
+import Screen from "@/components/ui/Screen";
+import Card from "@/components/ui/Card";
+import Text from "@/components/ui/Text";
+import Button from "@/components/ui/Button";
+import Divider from "@/components/ui/Divider";
+import { signOut } from "@react-native-firebase/auth";
+import { auth } from "@/utils/firebasee";
+import i18n, { changeLanguage } from "@/utils/locales/i18n";
+import { useTranslation } from "react-i18next";
+import { router } from "expo-router";
 
-const LANGUAGE_KEY = "user-language";
+import * as Haptics from "expo-haptics";
+import {
+  initHapticsFromStorage,
+  isHapticsEnabled,
+  setHapticsEnabled,
+} from "@/utils/haptics";
+
 const THEME_KEY = "settings.theme";
+const LANG_KEY = "settings.lang";
 
 export default function SettingsScreen() {
-  const [dark, setDark] = useState(UnistylesRuntime.themeName === "dark");
-
-  const { t, i18n } = useTranslation();
-  const [isArabic, setIsArabic] = useState(i18n.language === "ar");
-  const router = useRouter();
-  const clearUser = useAuthStore((state) => state.setUser);
+  const { t } = useTranslation();
   const isAdmin = true;
-  useEffect(() => {
-    AsyncStorage.getItem(LANGUAGE_KEY).then((lang) => {
-      setIsArabic(lang === "ar");
-    });
-  }, []);
-  useEffect(() => {
-    // hydrate from storage on first mount
+  const [dark, setDark] = React.useState(UnistylesRuntime.themeName === "dark");
+  const [haptics, setHaptics] = React.useState(false);
+  const [lang, setLang] = React.useState<"en" | "ar">(
+    i18n?.language === "ar" ? "ar" : "en"
+  );
+
+  React.useEffect(() => {
     (async () => {
-      const saved = await AsyncStorage.getItem(THEME_KEY);
-      if (saved === "dark" || saved === "light") {
-        UnistylesRuntime.setTheme(saved);
-        setDark(saved === "dark");
+      await initHapticsFromStorage();
+      setHaptics(isHapticsEnabled());
+    })();
+  }, []);
+  React.useEffect(() => {
+    const onChange = (lng: string) => setLang(lng === "ar" ? "ar" : "en");
+    i18n.on("languageChanged", onChange);
+    return () => {
+      i18n.off("languageChanged", onChange);
+    };
+  }, []);
+
+  React.useEffect(() => {
+    (async () => {
+      const savedTheme = await AsyncStorage.getItem(THEME_KEY);
+      if (savedTheme === "dark" || savedTheme === "light") {
+        UnistylesRuntime.setTheme(savedTheme);
+        setDark(savedTheme === "dark");
+        const active = UnistylesRuntime.getTheme();
+        UnistylesRuntime.setRootViewBackgroundColor(active.colors.background);
+        StatusBar.setBarStyle(active.barStyle);
+      }
+
+      const savedLang = await AsyncStorage.getItem(LANG_KEY);
+      if (savedLang === "en" || savedLang === "ar") {
+        if (savedLang !== i18n.language) {
+          try {
+            await i18n.changeLanguage(savedLang);
+          } catch {}
+        }
+        setLang(savedLang);
       }
     })();
   }, []);
 
-  const toggleLanguage = async () => {
-    const newLang = isArabic ? "en" : "ar";
-    await changeLanguage(newLang);
-    setIsArabic(!isArabic);
-  };
-
   const onToggleTheme = async (value: boolean) => {
     setDark(value);
-    const next = value ? "dark" : "light";
-    UnistylesRuntime.setTheme(next); // <- instant theme swap
-    await AsyncStorage.setItem(THEME_KEY, next);
+    UnistylesRuntime.setTheme(value ? "dark" : "light");
+    const active = UnistylesRuntime.getTheme();
+    UnistylesRuntime.setRootViewBackgroundColor(active.colors.background);
+    StatusBar.setBarStyle(active.barStyle);
+    await AsyncStorage.setItem(THEME_KEY, value ? "dark" : "light");
   };
 
-  const handleLogout = async () => {
+  const onChangeLang = async (next: "en" | "ar") => {
+    setLang(next);
     try {
-      // modular signOut call
+      await changeLanguage(next);
+    } catch {}
+    await AsyncStorage.setItem(LANG_KEY, next);
+  };
+
+  const onToggleHaptics = async (value: boolean) => {
+    setHaptics(value);
+    await setHapticsEnabled(value);
+    if (value) Haptics.selectionAsync(); // small confirm buzz
+  };
+
+  const onLogout = async () => {
+    try {
       await signOut(auth);
-      clearUser(null);
-      router.replace("/(auth)/login");
-    } catch (err: any) {
-      Alert.alert(t("auth.logoutFailed"), err.message);
+    } catch (e) {
+      console.warn("Logout failed:", e);
     }
+  };
+  const goToAdmin = async () => {
+    router.navigate("/(admin)/seed");
   };
 
   return (
-    <SafeAreaView>
-      <ScrollView contentContainerStyle={styles.container}>
-        <Text style={styles.header}>{t("settings.title") || "Settings"}</Text>
+    <SafeAreaView style={styles.safe} edges={["top", "left", "right"]}>
+      <Screen padded>
+        <Text variant="title" style={styles.header}>
+          {t("settings.title", "Settings")}
+        </Text>
 
-        <View style={styles.card}>
-          <View style={styles.item}>
-            <Text style={styles.label}>{t("settings.language")}</Text>
-            <View style={styles.switchRow}>
-              <Text style={styles.lang}>English</Text>
-              <Switch value={isArabic} onValueChange={toggleLanguage} />
-              <Text style={styles.lang}>عربي</Text>
-            </View>
-          </View>
-        </View>
-
-        <View style={styles.card}>
-          <Text style={styles.title}>Appearance</Text>
-          <View style={styles.row}>
-            <Text style={styles.label}>Dark mode</Text>
+        <Card style={styles.card}>
+          <Text variant="subtitle">
+            {t("settings.appearance", "Appearance")}
+          </Text>
+          <View style={styles.rowTight}>
+            <Text>{t("settings.darkMode", "Dark mode")}</Text>
             <Switch value={dark} onValueChange={onToggleTheme} />
           </View>
-        </View>
 
-        <TouchableOpacity onPress={handleLogout} style={styles.logoutBtn}>
-          <Text style={styles.logoutText}>{t("auth.logout")}</Text>
-        </TouchableOpacity>
+          <View style={styles.rowTight}>
+            <Text>{t("settings.haptics", "Haptic feedback")}</Text>
+            <Switch value={haptics} onValueChange={onToggleHaptics} />
+          </View>
+        </Card>
+
+        <Card style={styles.card}>
+          <Text variant="subtitle">{t("settings.language", "Language")}</Text>
+          <Divider />
+          <View style={styles.langRow}>
+            <Button
+              title={t("settings.english", "English")}
+              variant={lang === "en" ? "primary" : "ghost"}
+              onPress={() => onChangeLang("en")}
+              style={styles.halfBtn} // <-- flex:1 instead of full
+            />
+            <View style={styles.spacer} />
+            <Button
+              title={t("settings.arabic", "العربية")}
+              variant={lang === "ar" ? "primary" : "ghost"}
+              onPress={() => onChangeLang("ar")}
+              style={styles.halfBtn} // <-- flex:1 instead of full
+            />
+          </View>
+        </Card>
+
+        <Card style={styles.card}>
+          <Text variant="subtitle">{t("settings.account", "Account")}</Text>
+          <Divider />
+          <Button
+            title={t("settings.logout", "Log out")}
+            variant="danger"
+            onPress={onLogout}
+          />
+        </Card>
         {isAdmin && (
-          <TouchableOpacity
-            onPress={() => router.push("/(admin)/seed")}
-            style={{ padding: 12, backgroundColor: "#007AFF", borderRadius: 8 }}
-          >
-            <Text style={{ color: "white" }}>Seed Firestore</Text>
-          </TouchableOpacity>
+          <Card style={styles.card}>
+            <Text variant="subtitle">{t("settings.account", "Account")}</Text>
+            <Divider />
+            <Button
+              title={t("seed", "Admin Panel")}
+              variant="primary"
+              onPress={goToAdmin}
+            />
+          </Card>
         )}
-      </ScrollView>
+      </Screen>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create((theme) => ({
-  container: {
-    padding: 20,
-  },
-  header: {
-    fontSize: 22,
-    fontWeight: "700",
-    marginBottom: 10,
-  },
+  safe: { flex: 1, backgroundColor: theme.colors.background },
+
+  header: { marginBottom: theme.spacing(2) },
+
   card: {
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    padding: 16,
-    shadowColor: "#000",
-    shadowOpacity: 0.05,
-    shadowRadius: 6,
-    elevation: 3,
+    marginBottom: theme.spacing(1.5), // tighter section spacing
+    paddingVertical: theme.spacing(1.5), // keep Card padding from feeling too airy
   },
-  item: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  label: {
-    fontSize: 16,
-    fontWeight: "500",
-  },
-  switchRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
-  lang: {
-    fontSize: 14,
-    fontWeight: "500",
-    color: "#555",
-  },
-  title: {
-    color: theme.colors.text,
-    fontSize: 18,
-    fontWeight: "700",
-    marginBottom: theme.spacing(1),
-  },
-  row: {
+
+  // a tighter row for switch
+  rowTight: {
+    marginTop: theme.spacing(1),
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
   },
-  logoutBtn: {
-    backgroundColor: "#FF3B30",
-    paddingVertical: 14,
-    borderRadius: 10,
+
+  langRow: {
+    marginTop: theme.spacing(1),
+    flexDirection: "row",
     alignItems: "center",
-    marginTop: 12,
   },
-  logoutText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "bold",
-  },
+
+  spacer: { width: theme.spacing(1) },
+
+  // make each language button take half width (no overflow)
+  halfBtn: { flex: 1 },
 }));

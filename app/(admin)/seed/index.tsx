@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import firestore, { doc, setDoc } from "@react-native-firebase/firestore";
+import { router } from "expo-router";
 
 type Resource = {
   id: string;
@@ -119,6 +120,10 @@ export default function AdminSeedScreen() {
     } catch (e: any) {
       Alert.alert("❌ Error seeding:", e.message);
     }
+  }
+
+  function goBack() {
+    router.navigate("/(tabs)/settings");
   }
 
   return (
@@ -384,6 +389,9 @@ export default function AdminSeedScreen() {
 
         <View style={{ marginVertical: 20 }}>
           <Button title="🚀 Seed All Pending to Firestore" onPress={seedAll} />
+        </View>
+        <View style={{ marginVertical: 20 }}>
+          <Button title="go back" onPress={goBack} />
         </View>
       </ScrollView>
     </SafeAreaView>

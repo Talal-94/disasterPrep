@@ -1,57 +1,61 @@
-import { FlatList, Text, View, StyleSheet } from "react-native";
-
+import React from "react";
+import { FlatList, View } from "react-native";
+import { StyleSheet } from "react-native-unistyles";
+import Card from "@/components/ui/Card";
+import Text from "@/components/ui/Text";
+import Animated, { FadeIn } from "react-native-reanimated";
 export default function HourlyForecast({
   data,
+  title = "Hourly Forecast",
 }: {
   data: { hour: string; temp: number }[];
+  title?: string;
 }) {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Hourly Forecast</Text>
+      <Animated.Text style={styles.title} entering={FadeIn.duration(500)}>
+        {title}
+      </Animated.Text>
       <FlatList
         horizontal
         showsHorizontalScrollIndicator={false}
         data={data}
-        keyExtractor={(item, index) => index.toString()}
+        keyExtractor={(_, index) => index.toString()}
         contentContainerStyle={styles.list}
         renderItem={({ item }) => (
-          <View style={styles.card}>
-            <Text style={styles.hour}>{item.hour}</Text>
+          <Card style={styles.card}>
+            <Text variant="caption" style={styles.hour}>
+              {item.hour}
+            </Text>
             <Text style={styles.temp}>{Math.round(item.temp)}°</Text>
-          </View>
+          </Card>
         )}
       />
     </View>
   );
 }
 
-const styles = StyleSheet.create({
+const styles = StyleSheet.create((theme) => ({
   container: {
-    marginTop: 20,
-    paddingHorizontal: 16,
+    marginTop: theme.spacing(2),
+    paddingHorizontal: theme.spacing(2),
   },
   title: {
-    fontWeight: "600",
+    color: theme.colors.text,
+    fontWeight: "700",
     fontSize: 16,
-    marginBottom: 12,
+    marginBottom: theme.spacing(1),
   },
-  list: {
-    gap: 12,
-  },
+  list: { gap: theme.spacing(1) },
   card: {
-    backgroundColor: "#f3f4f6",
-    padding: 12,
-    borderRadius: 8,
+    backgroundColor: theme.colors.card,
+    borderColor: theme.colors.border,
+    borderWidth: 1,
+    borderRadius: theme.radius.md,
+    padding: theme.spacing(1),
     alignItems: "center",
-    width: 64,
+    width: 72,
   },
-  hour: {
-    fontSize: 14,
-    color: "#555",
-  },
-  temp: {
-    fontWeight: "bold",
-    fontSize: 16,
-    color: "#222",
-  },
-});
+  hour: { color: theme.colors.muted },
+  temp: { color: theme.colors.text, fontWeight: "800", fontSize: 16 },
+}));

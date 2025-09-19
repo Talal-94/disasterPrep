@@ -1,30 +1,8 @@
-// import i18n from 'i18next';
-// import { initReactI18next } from 'react-i18next';
-// import en from '../en.json';
-// import ar from '../ar.json';
-
-// i18n
-//   .use(initReactI18next)
-//   .init({
-//     compatibilityJSON: 'v4',
-//     lng: 'en',
-//     fallbackLng: 'en',
-//     resources: {
-//       en: { translation: en },
-//       ar: { translation: ar },
-//     },
-//     interpolation: {
-//       escapeValue: false,
-//     },
-//   });
-
-// export default i18n;
-
-
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
-import { I18nManager, Platform } from 'react-native';
+import { I18nManager, DevSettings } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Updates from "expo-updates";
 
 import en from '../en.json';
 import ar from '../ar.json';
@@ -44,10 +22,10 @@ const configureRTL = async (lang: string) => {
   if (I18nManager.isRTL !== isRTL) {
     I18nManager.allowRTL(isRTL);
     I18nManager.forceRTL(isRTL);
-    if (Platform.OS === 'android') {
-      // TODO
-      // Force restart for RTL to apply properly
-      console.warn('RTL change requires app restart.');
+    try {
+      await Updates.reloadAsync();
+    } catch {
+      try { DevSettings.reload(); } catch { }
     }
   }
 };

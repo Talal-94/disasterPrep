@@ -2,6 +2,7 @@ import * as Notifications from "expo-notifications";
 import { Slot } from "expo-router";
 import { useEffect } from "react";
 import "./utils/locales/i18n";
+import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({

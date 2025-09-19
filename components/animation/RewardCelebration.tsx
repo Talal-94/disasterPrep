@@ -1,87 +1,87 @@
-import { View, Text, StyleSheet, Animated, Dimensions } from "react-native";
-import LottieView from "lottie-react-native";
-import { useEffect, useRef } from "react";
-import { BlurView } from "expo-blur";
-import Toast from "react-native-toast-message";
+import React, { useEffect, useRef } from "react";
+import { Animated, Dimensions, View, InteractionManager } from "react-native";
+import { StyleSheet } from "react-native-unistyles";
+import Text from "@/components/ui/Text";
+import Card from "@/components/ui/Card";
 
-const { width, height } = Dimensions.get("window");
-
-type Props = {
-  message: string;
-  onDone: () => void;
-};
+type Props = { message: string; onDone?: () => void };
 
 export default function RewardCelebration({ message, onDone }: Props) {
   const opacity = useRef(new Animated.Value(0)).current;
+  const translateY = useRef(new Animated.Value(20)).current;
 
   useEffect(() => {
-    Animated.sequence([
-      Animated.timing(opacity, {
-        toValue: 1,
-        duration: 300,
-        useNativeDriver: true,
-      }),
-      Animated.delay(2500),
-      Animated.timing(opacity, {
-        toValue: 0,
-        duration: 300,
-        useNativeDriver: true,
-      }),
-    ]).start(onDone);
-  }, []);
-
-  useEffect(() => {
-    Toast.show({
-      type: "success",
-      text1: message,
+    let raf = requestAnimationFrame(() => {
+      Animated.sequence([
+        Animated.parallel([
+          Animated.timing(opacity, {
+            toValue: 1,
+            duration: 220,
+            useNativeDriver: true,
+          }),
+          Animated.timing(translateY, {
+            toValue: 0,
+            duration: 220,
+            useNativeDriver: true,
+          }),
+        ]),
+        Animated.delay(1200),
+        Animated.parallel([
+          Animated.timing(opacity, {
+            toValue: 0,
+            duration: 180,
+            useNativeDriver: true,
+          }),
+          Animated.timing(translateY, {
+            toValue: -10,
+            duration: 180,
+            useNativeDriver: true,
+          }),
+        ]),
+      ]).start(() => {
+        InteractionManager.runAfterInteractions(() => {
+          // schedule after layout/insertions have finished
+          onDone?.();
+        });
+      });
     });
-  }, []);
+    return () => cancelAnimationFrame(raf);
+  }, [opacity, translateY, onDone]);
 
   return (
-    <Animated.View style={[StyleSheet.absoluteFill, { opacity, zIndex: 999 }]}>
-      <BlurView intensity={50} tint="light" style={styles.blur}>
-        <LottieView
-          source={require("../../assets/lottie/success confetti.json")}
-          autoPlay
-          loop={false}
-          style={styles.lottie}
-        />
-        <View style={styles.messageBox}>
-          <Text style={styles.messageText}>{message}</Text>
-        </View>
-      </BlurView>
-    </Animated.View>
+    <View pointerEvents="none" style={StyleSheet.absoluteFillObject as any}>
+      <Animated.View
+        style={[
+          styles.wrap,
+          {
+            opacity,
+            transform: [{ translateY }],
+          },
+        ]}
+      >
+        <Card style={styles.card}>
+          <Text style={styles.text}>{message}</Text>
+        </Card>
+      </Animated.View>
+    </View>
   );
 }
 
-const styles = StyleSheet.create({
-  blur: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  lottie: {
+const styles = StyleSheet.create((theme) => ({
+  wrap: {
     position: "absolute",
-    width,
-    height,
-  },
-  messageBox: {
-    backgroundColor: "#fff",
-    padding: 24,
-    borderRadius: 16,
-    elevation: 10,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    maxWidth: "80%",
+    top: Dimensions.get("window").height * 0.15,
+    left: 0,
+    right: 0,
     alignItems: "center",
-    justifyContent: "center",
   },
-  messageText: {
-    fontSize: 18,
-    fontWeight: "600",
-    textAlign: "center",
-    color: "#333",
+  card: {
+    backgroundColor: theme.colors.card,
+    borderColor: theme.colors.border,
+    borderWidth: 1,
+    borderRadius: theme.radius.lg,
+    paddingVertical: theme.spacing(1),
+    paddingHorizontal: theme.spacing(1.5),
   },
-});
+  text: { color: theme.colors.text, fontWeight: "700" },
+}));

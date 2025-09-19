@@ -1,65 +1,29 @@
-import React, { useEffect, useState, useCallback } from "react";
-import {
-  View,
-  Text,
-  FlatList,
-  TouchableOpacity,
-  StyleSheet,
-  ActivityIndicator,
-  RefreshControl,
-} from "react-native";
+import React, { useCallback, useEffect, useState } from "react";
+import { ActivityIndicator, FlatList, Pressable, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { StyleSheet } from "react-native-unistyles";
 import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
-
 import { firestore } from "@/utils/firebasee";
-import {
-  collection,
-  getDocs,
-  doc,
-  getDoc,
-} from "@react-native-firebase/firestore";
-
-type QuizMeta = {
-  id: string;
-  resourceId: string;
-  title: string;
-};
+import { collection, getDocs } from "@react-native-firebase/firestore";
+import Text from "@/components/ui/Text";
+import Card from "@/components/ui/Card";
 
 export default function QuizzesListScreen() {
-  const { i18n, t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const router = useRouter();
-  const [quizzes, setQuizzes] = useState<QuizMeta[]>([]);
+  const [quizzes, setQuizzes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
+  // const [refreshing, setRefreshing] = useState(false);
 
   const load = useCallback(async () => {
-    setLoading(true);
     try {
-      // 1) Fetch all quizzes
       const snap = await getDocs(collection(firestore, "quizzes"));
-
-      // 2) For each quiz, look up its resource title
-      const metas: QuizMeta[] = await Promise.all(
-        snap.docs.map(async (qdoc: { data: () => any; id: any }) => {
-          const q = qdoc.data() as any;
-          let title = q.resourceId;
-
-          // modular getDoc/doc
-          const resSnap = await getDoc(
-            doc(firestore, "resources", q.resourceId)
-          );
-          if (resSnap.exists()) {
-            const res = resSnap.data() as any;
-            title = res.title?.[i18n.language] || res.title?.en || q.resourceId;
-          }
-
-          return { id: qdoc.id, resourceId: q.resourceId, title };
-        })
+      setQuizzes(
+        snap.docs.map((d: any) => ({ id: d.id, ...(d.data() as any) }))
       );
-
-      setQuizzes(metas);
-    } catch (err) {
-      console.error("❌ Error loading quizzes:", err);
+    } catch (e) {
+      console.warn("Load quizzes failed", e);
     } finally {
       setLoading(false);
     }
@@ -69,58 +33,75 @@ export default function QuizzesListScreen() {
     load();
   }, [load]);
 
-  const onRefresh = useCallback(async () => {
-    setRefreshing(true);
-    await load();
-    setRefreshing(false);
-  }, [load]);
+  const renderItem = ({ item }: { item: any }) => (
+    <Card style={styles.item}>
+      <Pressable
+        onPress={() =>
+          router.push({
+            pathname: "/(tabs)/learn/quizzes/[id]",
+            params: { id: item.id },
+          })
+        }
+        style={({ pressed }) => [styles.itemPress, pressed && styles.pressed]}
+      >
+        <Text style={styles.title}>
+          {item.title?.[i18n.language] ?? item.title?.en ?? item.id}
+        </Text>
+        <Text variant="caption" style={styles.meta}>
+          +{item.xpReward} {t("learn.xp", "XP")}
+        </Text>
+      </Pressable>
+    </Card>
+  );
 
-  if (loading && !refreshing) {
+  if (loading) {
     return (
-      <View style={styles.loader}>
-        <ActivityIndicator size="large" />
-      </View>
+      <SafeAreaView style={styles.safe}>
+        <View style={styles.loader}>
+          <ActivityIndicator size="large" />
+        </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <FlatList
-      data={quizzes}
-      keyExtractor={(q) => q.id}
-      refreshControl={
-        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-      }
-      contentContainerStyle={styles.listContainer}
-      ListEmptyComponent={
-        <View style={styles.loader}>
-          <Text>{t("learn.noQuizzesAvailable", "No quizzes available.")}</Text>
-        </View>
-      }
-      renderItem={({ item }) => (
-        <TouchableOpacity
-          style={styles.card}
-          onPress={() => router.push(`/learn/quizzes/${item.id}`)}
-        >
-          <Text style={styles.title}>{item.title}</Text>
-          <Text style={styles.subtitle}>
-            {t("learn.takeQuiz", "Take Quiz")}
-          </Text>
-        </TouchableOpacity>
-      )}
-    />
+    <SafeAreaView style={styles.safe} edges={["left", "right"]}>
+      <FlatList
+        data={quizzes}
+        renderItem={renderItem}
+        keyExtractor={(q) => q.id}
+        overScrollMode="always"
+        contentInsetAdjustmentBehavior="automatic"
+        contentContainerStyle={styles.listContent}
+      />
+    </SafeAreaView>
   );
 }
 
-const styles = StyleSheet.create({
-  loader: { flex: 1, justifyContent: "center", alignItems: "center" },
-  listContainer: { padding: 16, flexGrow: 1 },
-  card: {
-    backgroundColor: "#fff",
-    padding: 16,
-    marginBottom: 12,
-    borderRadius: 8,
-    elevation: 1,
+const styles = StyleSheet.create((theme) => ({
+  safe: {
+    flex: 1,
+    backgroundColor: theme.colors.background,
   },
-  title: { fontSize: 16, fontWeight: "600" },
-  subtitle: { fontSize: 14, color: "#666", marginTop: 4 },
-});
+  loader: { flex: 1, alignItems: "center", justifyContent: "center" },
+  listContent: {
+    paddingHorizontal: theme.spacing(2),
+    paddingBottom: theme.spacing(3),
+    marginTop: theme.spacing(2),
+  },
+  item: {
+    backgroundColor: theme.colors.card,
+    borderColor: theme.colors.border,
+    borderWidth: 1,
+    borderRadius: theme.radius.md,
+    marginBottom: theme.spacing(1),
+  },
+  itemPress: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  pressed: { opacity: 0.9 },
+  title: { color: theme.colors.text, fontWeight: "700" },
+  meta: { color: theme.colors.primary, marginTop: theme.spacing(0.25) },
+}));

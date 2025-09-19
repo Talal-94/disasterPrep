@@ -1,23 +1,22 @@
-// app/(tabs)/learn/index.tsx
 import { useEffect, useState, useCallback } from "react";
-import {
-  FlatList,
-  RefreshControl,
-  Text,
-  TouchableOpacity,
-  View,
-  StyleSheet,
-  SafeAreaView,
-} from "react-native";
+import { FlatList, RefreshControl, TouchableOpacity, View } from "react-native";
 import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { StyleSheet } from "react-native-unistyles";
+
 import { useXPStore } from "@/store/xpStore";
+import useProgressSync from "@/hooks/useProgressSync";
+
 import UserProgress from "../../../components/learn/UserProgress";
 import ResourceCard from "../../../components/learn/ResourceCard";
 import SkeletonResourceCard from "../../../components/learn/SkeletonResourceCard";
 import TaskCard from "../../../components/learn/TaskCard";
-import useProgressSync from "@/hooks/useProgressSync";
 import RewardCelebration from "@/components/animation/RewardCelebration";
+
+import Screen from "@/components/ui/Screen";
+import Text from "@/components/ui/Text";
+import Button from "@/components/ui/Button";
 
 import { firestore } from "@/utils/firebasee";
 import {
@@ -30,6 +29,7 @@ import {
 export default function LearnScreen() {
   const { t, i18n } = useTranslation();
   const router = useRouter();
+
   const [resources, setResources] = useState<any[]>([]);
   const [taskDefs, setTaskDefs] = useState<any[]>([]);
   const [badgeDefs, setBadgeDefs] = useState<any[]>([]);
@@ -48,7 +48,6 @@ export default function LearnScreen() {
 
   useProgressSync();
 
-  // Fetch the top-3 resources
   const fetchResources = useCallback(async () => {
     try {
       const snap = await getDocs(
@@ -65,7 +64,6 @@ export default function LearnScreen() {
     }
   }, []);
 
-  // Fetch task definitions
   const fetchTasks = useCallback(async () => {
     try {
       const snap = await getDocs(collection(firestore, "tasks"));
@@ -80,7 +78,6 @@ export default function LearnScreen() {
     }
   }, [i18n.language]);
 
-  // Fetch badge definitions
   const fetchBadges = useCallback(async () => {
     try {
       const snap = await getDocs(collection(firestore, "badges"));
@@ -152,12 +149,12 @@ export default function LearnScreen() {
   const ListFooter = () => (
     <View style={styles.footer}>
       <Text style={styles.sectionTitle}>{t("learn.dailyQuiz")}</Text>
-      <TouchableOpacity
-        style={styles.quizButton}
+
+      <Button
+        title={t("learn.startQuiz")}
         onPress={() => router.push("/learn/quizzes")}
-      >
-        <Text style={styles.quizText}>{t("learn.startQuiz")}</Text>
-      </TouchableOpacity>
+        full
+      />
 
       <Text style={[styles.sectionTitle, { marginTop: 24 }]}>
         {t("learn.tasksChallenges")}
@@ -192,18 +189,23 @@ export default function LearnScreen() {
 
   return (
     <>
-      <SafeAreaView style={styles.container}>
-        <FlatList
-          data={resources}
-          renderItem={renderResource}
-          keyExtractor={(r) => r.id}
-          ListHeaderComponent={ListHeader}
-          ListFooterComponent={ListFooter}
-          refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-          }
-          contentContainerStyle={{ paddingBottom: 24 }}
-        />
+      <SafeAreaView style={styles.safe} edges={["top", "left", "right"]}>
+        <Screen padded={false}>
+          {/* <Text variant="title" style={[styles.header, styles.listContent]}>
+            {t("learn.title")}
+          </Text> */}
+          <FlatList
+            data={resources}
+            renderItem={renderResource}
+            keyExtractor={(r) => r.id}
+            ListHeaderComponent={ListHeader}
+            ListFooterComponent={ListFooter}
+            refreshControl={
+              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+            }
+            contentContainerStyle={styles.listContent}
+          />
+        </Screen>
       </SafeAreaView>
 
       {rewardEvent && (
@@ -217,26 +219,32 @@ export default function LearnScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1 },
+const styles = StyleSheet.create((theme) => ({
+  safe: {
+    flex: 1,
+    backgroundColor: theme.colors.background,
+    marginTop: theme.spacing(2.5),
+  },
+  header: { marginBottom: theme.spacing(2) },
+
+  listContent: {
+    paddingHorizontal: theme.spacing(2),
+    paddingBottom: theme.spacing(3),
+  },
   sectionHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginHorizontal: 16,
-    marginTop: 16,
-    marginBottom: 8,
+    marginTop: theme.spacing(2),
+    marginBottom: theme.spacing(1),
   },
-  sectionTitle: { fontSize: 18, fontWeight: "600" },
-  viewAll: { color: "#007AFF", fontSize: 14 },
-  quizButton: {
-    backgroundColor: "#007AFF",
-    padding: 14,
-    borderRadius: 8,
-    alignItems: "center",
-    marginHorizontal: 16,
-    marginTop: 8,
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: theme.colors.text,
+    paddingBottom: theme.spacing(1.5),
   },
-  quizText: { color: "#fff", fontWeight: "600" },
-  footer: { marginTop: 24, paddingHorizontal: 16 },
-});
+  viewAll: { color: theme.colors.primary, fontSize: 14, fontWeight: "600" },
+
+  footer: { marginTop: theme.spacing(3) },
+}));

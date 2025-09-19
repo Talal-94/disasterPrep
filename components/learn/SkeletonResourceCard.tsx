@@ -1,76 +1,60 @@
-// components/learn/SkeletonResourceCard.tsx
-import React, { useEffect, useRef } from "react";
-import { View, StyleSheet, Animated, Easing } from "react-native";
+import React from "react";
+import { View } from "react-native";
+import { StyleSheet } from "react-native-unistyles";
+import Card from "@/components/ui/Card";
 
 export default function SkeletonResourceCard() {
-  // Animated value for opacity shimmer
-  const opacity = useRef(new Animated.Value(0.3)).current;
-
-  useEffect(() => {
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(opacity, {
-          toValue: 1,
-          duration: 800,
-          easing: Easing.linear,
-          useNativeDriver: true,
-        }),
-        Animated.timing(opacity, {
-          toValue: 0.3,
-          duration: 800,
-          easing: Easing.linear,
-          useNativeDriver: true,
-        }),
-      ])
-    ).start();
-  }, [opacity]);
-
   return (
-    <Animated.View style={[styles.card, { opacity }]}>
-      <View style={styles.header}>
+    <Card style={styles.card}>
+      <View style={styles.row}>
         <View style={styles.avatar} />
-        <View style={styles.textBlock} />
+        <View style={styles.content}>
+          <View style={styles.lineLong} />
+          <View style={styles.lineShort} />
+          <View style={styles.meta} />
+        </View>
       </View>
-      <View style={styles.line} />
-      <View style={styles.meta} />
-    </Animated.View>
+    </Card>
   );
 }
 
-const styles = StyleSheet.create({
+const styles = StyleSheet.create((theme) => ({
   card: {
-    backgroundColor: "#f0f0f0",
-    marginHorizontal: 16,
-    marginBottom: 12,
-    borderRadius: 12,
-    padding: 16,
+    padding: theme.spacing(1.25),
+    backgroundColor: theme.colors.card,
+    borderColor: theme.colors.border,
+    borderWidth: 1,
+    borderRadius: theme.radius.md,
+    marginHorizontal: theme.spacing(2),
+    marginBottom: theme.spacing(1),
   },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 12,
-  },
+  row: { flexDirection: "row", gap: theme.spacing(1) },
   avatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: "#e0e0e0",
+    width: 46,
+    height: 46,
+    borderRadius: 23,
+    backgroundColor: theme.colors.border,
   },
-  textBlock: {
-    flex: 1,
+  content: { flex: 1 },
+  lineLong: {
     height: 16,
-    marginLeft: 12,
     borderRadius: 4,
-    backgroundColor: "#e0e0e0",
+    backgroundColor: theme.colors.border,
+    marginBottom: theme.spacing(0.5),
+    width: "80%",
   },
-  line: {
-    height: 12,
+  lineShort: {
+    height: 14,
     borderRadius: 4,
-    backgroundColor: "#e0e0e0",
-    marginBottom: 8,
+    backgroundColor: theme.colors.border,
+    marginBottom: theme.spacing(0.5),
+    width: "60%",
   },
   meta: {
-    flexDirection: "row",
-    justifyContent: "flex-start",
+    height: 12,
+    borderRadius: 4,
+    backgroundColor: theme.colors.border,
+    width: "40%",
+    marginTop: theme.spacing(0.5),
   },
-});
+}));

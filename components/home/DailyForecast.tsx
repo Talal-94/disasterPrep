@@ -1,13 +1,18 @@
-import { View, Text, StyleSheet } from "react-native";
+import React from "react";
+import { View } from "react-native";
+import { StyleSheet } from "react-native-unistyles";
+import Text from "@/components/ui/Text";
 
 export default function DailyForecast({
   data,
+  title = "Daily Forecast",
 }: {
   data: { day: string; min: number; max: number }[];
+  title?: string;
 }) {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Daily Forecast</Text>
+      <Text style={styles.title}>{title}</Text>
       {data.map((item, index) => (
         <View key={index} style={styles.row}>
           <Text style={styles.day}>{item.day}</Text>
@@ -20,30 +25,24 @@ export default function DailyForecast({
   );
 }
 
-const styles = StyleSheet.create({
+const styles = StyleSheet.create((theme) => ({
   container: {
-    marginTop: 24,
-    paddingHorizontal: 16,
+    marginTop: theme.spacing(2.5),
+    paddingHorizontal: theme.spacing(2),
   },
   title: {
-    fontWeight: "600",
+    color: theme.colors.text,
+    fontWeight: "700",
     fontSize: 16,
-    marginBottom: 12,
+    marginBottom: theme.spacing(1),
   },
   row: {
     flexDirection: "row",
     justifyContent: "space-between",
     paddingVertical: 6,
-    borderBottomColor: "#eee",
+    borderBottomColor: theme.colors.border,
     borderBottomWidth: 1,
   },
-  day: {
-    fontSize: 15,
-    color: "#333",
-  },
-  temp: {
-    fontSize: 15,
-    fontWeight: "500",
-    color: "#333",
-  },
-});
+  day: { color: theme.colors.text, fontSize: 15 },
+  temp: { color: theme.colors.text, fontSize: 15, fontWeight: "600" },
+}));

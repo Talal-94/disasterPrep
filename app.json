@@ -1,10 +1,10 @@
 {
   "expo": {
-    "name": "disasterPreparedness",
+    "name": "Hadi | هادي",
     "slug": "disasterPreparedness",
     "version": "1.0.1",
     "orientation": "portrait",
-    "icon": "./assets/images/expo.png",
+    "icon": "./assets/images/logo.png",
     "scheme": "disasterpreparedness",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -23,7 +23,7 @@
         "ACCESS_FINE_LOCATION"
       ],
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/expo.png",
+        "foregroundImage": "./assets/images/logo.png",
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
@@ -32,10 +32,11 @@
     "web": {
       "bundler": "metro",
       "output": "static",
-      "favicon": "./assets/images/expo.png"
+      "favicon": "./assets/images/logo.png"
     },
     "plugins": [
       "@react-native-firebase/app",
+      "expo-updates",
       [
         "expo-build-properties",
         {
@@ -50,7 +51,7 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/expo.png",
+          "image": "./assets/images/splash.jpg",
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"

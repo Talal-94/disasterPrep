@@ -1,12 +1,15 @@
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
-import { ReactNode } from "react";
+import React from "react";
+import { Pressable, View } from "react-native";
+import { StyleSheet } from "react-native-unistyles";
+import Card from "@/components/ui/Card";
+import Text from "@/components/ui/Text";
 
 type Props = {
-  icon: ReactNode;
+  icon?: React.ReactNode;
   title: string;
   description: string;
-  time: string;
-  level: string;
+  time: string; // e.g. "34 min read"
+  level: string; // e.g. "First Aid"
   onPress?: () => void;
 };
 
@@ -19,65 +22,69 @@ export default function ResourceCard({
   onPress,
 }: Props) {
   return (
-    <TouchableOpacity onPress={onPress} style={styles.card}>
-      <View style={styles.row}>
-        <View style={styles.iconWrapper}>{icon}</View>
-        <View style={{ flex: 1, marginLeft: 12 }}>
-          <Text style={styles.title}>{title}</Text>
-          <Text style={styles.description} numberOfLines={2}>
+    <Card style={styles.card}>
+      <Pressable onPress={onPress} style={styles.row}>
+        {/* icon / thumbnail */}
+        <View style={styles.avatar}>{icon ?? <Text>📘</Text>}</View>
+
+        {/* content */}
+        <View style={styles.content}>
+          <Text style={styles.title} numberOfLines={2}>
+            {title}
+          </Text>
+          <Text style={styles.desc} numberOfLines={2}>
             {description}
           </Text>
-          <View style={styles.meta}>
-            <Text style={styles.metaText}>{time}</Text>
-            <Text style={styles.dot}>•</Text>
-            <Text style={styles.metaText}>{level}</Text>
+
+          <View style={styles.metaRow}>
+            <Text variant="caption" style={styles.meta}>
+              {time}
+            </Text>
+            <Text variant="caption" style={styles.dot}>
+              {" • "}
+            </Text>
+            <Text variant="caption" style={styles.meta}>
+              {level}
+            </Text>
           </View>
         </View>
-      </View>
-    </TouchableOpacity>
+      </Pressable>
+    </Card>
   );
 }
 
-const styles = StyleSheet.create({
+const styles = StyleSheet.create((theme) => ({
   card: {
-    backgroundColor: "#fff",
-    marginHorizontal: 16,
-    marginBottom: 12,
-    padding: 16,
-    borderRadius: 12,
-    elevation: 1,
+    padding: theme.spacing(1.25),
+    backgroundColor: theme.colors.card,
+    borderColor: theme.colors.border,
+    borderWidth: 1,
+    borderRadius: theme.radius.md,
+    marginBottom: theme.spacing(1),
   },
-  row: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-  },
-  iconWrapper: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: "#f2f2f2",
-    justifyContent: "center",
+  row: { flexDirection: "row", gap: theme.spacing(1) },
+  avatar: {
+    width: 46,
+    height: 46,
+    borderRadius: 23,
     alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: theme.colors.background,
+    borderColor: theme.colors.border,
+    borderWidth: 1,
   },
-  title: {
-    fontWeight: "600",
-    fontSize: 16,
+  content: { flex: 1 },
+  title: { color: theme.colors.text, fontWeight: "700", fontSize: 16 },
+  desc: {
+    color: theme.colors.muted,
+    marginTop: theme.spacing(0.5),
+    fontSize: 13,
   },
-  description: {
-    color: "#666",
-    fontSize: 14,
-    marginTop: 4,
-  },
-  meta: {
+  metaRow: {
     flexDirection: "row",
-    marginTop: 8,
+    alignItems: "center",
+    marginTop: theme.spacing(0.75),
   },
-  metaText: {
-    fontSize: 12,
-    color: "#999",
-  },
-  dot: {
-    marginHorizontal: 6,
-    color: "#999",
-  },
-});
+  meta: { color: theme.colors.muted },
+  dot: { color: theme.colors.muted },
+}));

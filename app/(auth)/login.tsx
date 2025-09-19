@@ -1,108 +1,126 @@
-import { useState } from "react";
-import { Text, TextInput, TouchableOpacity, StyleSheet } from "react-native";
+import React from "react";
+import { KeyboardAvoidingView, Platform, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useTranslation } from "react-i18next";
+import { StyleSheet } from "react-native-unistyles";
 import { useRouter } from "expo-router";
 
-import { auth, firestore } from "@/utils/firebasee";
+import { auth } from "@/utils/firebasee";
 import { signInWithEmailAndPassword } from "@react-native-firebase/auth";
-import { doc, getDoc, setDoc } from "@react-native-firebase/firestore";
 
-export default function Login() {
+import Screen from "@/components/ui/Screen";
+import Text from "@/components/ui/Text";
+import Input from "@/components/ui/Input";
+import Button from "@/components/ui/Button";
+
+import { useTranslation } from "react-i18next";
+import Toast from "react-native-toast-message";
+
+export default function LoginScreen() {
   const { t } = useTranslation();
   const router = useRouter();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
 
-  const handleLogin = async () => {
+  const [email, setEmail] = React.useState("");
+  const [password, setPassword] = React.useState("");
+  const [loading, setLoading] = React.useState(false);
+
+  const onLogin = async () => {
+    if (!email || !password || loading) return;
+    setLoading(true);
     try {
-      // 1) use modular helper
-      const { user } = await signInWithEmailAndPassword(auth, email, password);
-      const uid = user.uid;
-
-      // 2) modular Firestore calls
-      const userRef = doc(firestore, "users", uid);
-      const snap = await getDoc(userRef);
-      if (!snap.exists()) {
-        await setDoc(userRef, {
-          xp: 0,
-          completedResources: [],
-          completedQuizzes: [],
-          badges: [],
-        });
-      }
-
-      // 3) navigate
-      router.replace("/");
-    } catch (err: any) {
-      console.error("Login failed:", err);
+      await signInWithEmailAndPassword(auth, email.trim(), password);
+      router.replace("/(tabs)/home");
+    } catch (e: any) {
+      const code = e?.code ?? "";
+      const msg =
+        code === "auth/invalid-credential" ||
+        code === "auth/invalid-email" ||
+        code === "auth/user-not-found" ||
+        code === "auth/wrong-password"
+          ? t("auth.invalidCredentials", "Invalid email or password.")
+          : e?.message || t("common.somethingWrong", "Something went wrong.");
+      Toast.show({
+        type: "error",
+        text1: t("auth.signInFailed", "Sign in failed"),
+        text2: msg,
+      });
+      console.warn("Login failed:", e);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <Text style={styles.header}>{t("auth.login")}</Text>
-      <TextInput
-        style={styles.input}
-        placeholder={t("auth.email")}
-        keyboardType="email-address"
-        autoCapitalize="none"
-        onChangeText={setEmail}
-        value={email}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder={t("auth.password")}
-        secureTextEntry
-        onChangeText={setPassword}
-        value={password}
-      />
-      <TouchableOpacity style={styles.button} onPress={handleLogin}>
-        <Text style={styles.buttonText}>{t("auth.signIn")}</Text>
-      </TouchableOpacity>
-      <TouchableOpacity onPress={() => router.replace("/(auth)/register")}>
-        <Text style={styles.link}>{t("auth.noAccount")}</Text>
-      </TouchableOpacity>
+    <SafeAreaView style={styles.safe} edges={["top", "left", "right"]}>
+      <KeyboardAvoidingView
+        behavior={Platform.select({ ios: "padding" })}
+        style={{ flex: 1 }}
+      >
+        <Screen>
+          <Text variant="title" style={styles.title}>
+            {t("auth.loginTitle", "Login")}
+          </Text>
+
+          <Input
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            autoCorrect={false}
+            autoComplete="email"
+            placeholder={t("auth.email", "Email Address")}
+            containerStyle={styles.field}
+            returnKeyType="next"
+          />
+
+          <Input
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry
+            autoCapitalize="none"
+            autoCorrect={false}
+            placeholder={t("auth.password", "Password")}
+            containerStyle={styles.field}
+            returnKeyType="done"
+            onSubmitEditing={onLogin}
+          />
+
+          <Button
+            title={
+              loading
+                ? t("auth.signingIn", "Signing in…")
+                : t("auth.signIn", "Sign In")
+            }
+            onPress={onLogin}
+            disabled={!email || !password || loading}
+            style={styles.cta}
+            full
+          />
+
+          <TouchableOpacity onPress={() => router.push("/register")}>
+            <Text style={styles.link}>
+              {t("auth.noAccount", "Don't have an account? Register here")}
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => router.push("/forgot-password")}>
+            <Text style={styles.link}>
+              {t("auth.forgot", "Forgot password?")}
+            </Text>
+          </TouchableOpacity>
+        </Screen>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 24,
-    justifyContent: "center",
-    backgroundColor: "#fff",
-  },
-  header: {
-    fontSize: 28,
-    fontWeight: "bold",
-    marginBottom: 32,
-    textAlign: "center",
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    padding: 14,
-    marginBottom: 16,
-    borderRadius: 8,
-    fontSize: 16,
-  },
-  button: {
-    backgroundColor: "#007AFF",
-    padding: 16,
-    borderRadius: 8,
-    alignItems: "center",
-    marginTop: 8,
-  },
-  buttonText: {
-    color: "#fff",
-    fontWeight: "600",
-    fontSize: 16,
-  },
+
+const styles = StyleSheet.create((theme) => ({
+  safe: { flex: 1, backgroundColor: theme.colors.background },
+  title: { marginTop: theme.spacing(2), marginBottom: theme.spacing(1.5) },
+  field: { marginTop: theme.spacing(1) },
+  cta: { marginTop: theme.spacing(2) },
   link: {
-    marginTop: 20,
+    color: theme.colors.primary,
+    fontWeight: "600",
     textAlign: "center",
-    color: "#007AFF",
-    fontSize: 14,
+    marginTop: theme.spacing(2),
   },
-});
+}));

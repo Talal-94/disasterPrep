@@ -1,5 +1,9 @@
-import { View, Text, StyleSheet } from "react-native";
-import { FontAwesome } from "@expo/vector-icons";
+import React from "react";
+import { View } from "react-native";
+import { StyleSheet } from "react-native-unistyles";
+import Card from "@/components/ui/Card";
+import Text from "@/components/ui/Text";
+import Divider from "@/components/ui/Divider";
 
 type Props = {
   title: string;
@@ -9,74 +13,93 @@ type Props = {
 };
 
 export default function TaskCard({ title, current, total, xp }: Props) {
-  const earned = current >= total ? total : current;
+  const progress = total > 0 ? Math.min(current / total, 1) : 0;
+  const completed = progress >= 1;
 
   return (
-    <View style={styles.container}>
-      <View style={styles.left}>
-        <View style={styles.iconWrapper}>
-          <View
-            style={[
-              styles.iconWrapper,
-              current >= total && styles.iconComplete,
-            ]}
-          >
-            <FontAwesome name="check" size={16} color="#fff" />
+    <Card style={styles.card}>
+      <View style={styles.row}>
+        <View
+          style={[
+            styles.check,
+            completed ? styles.checkDone : styles.checkTodo,
+          ]}
+        >
+          <Text style={styles.checkMark}>{completed ? "✓" : " "}</Text>
+        </View>
+
+        <View style={styles.main}>
+          <Text style={styles.title}>{title}</Text>
+          <Text variant="muted" style={styles.subtitle}>
+            Progress: {current}/{total}
+          </Text>
+
+          <View style={styles.barWrap}>
+            <View style={styles.barBg} />
+            <View style={[styles.barFg, { width: `${progress * 100}%` }]} />
           </View>
         </View>
-        <View style={styles.texts}>
-          <Text style={styles.title}>{title}</Text>
-          <Text style={styles.progress}>
-            Progress: {earned}/{total}
-          </Text>
-        </View>
+
+        <Text style={styles.xp}>+{xp} XP</Text>
       </View>
-      <Text style={styles.xp}>+{xp} XP</Text>
-    </View>
+
+      <Divider />
+    </Card>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: "#fff",
-    marginHorizontal: 16,
-    marginTop: 12,
-    borderRadius: 12,
-    padding: 16,
-    elevation: 1,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+const styles = StyleSheet.create((theme) => ({
+  card: {
+    backgroundColor: theme.colors.card,
+    borderColor: theme.colors.border,
+    borderWidth: 1,
+    borderRadius: theme.radius.md,
+    padding: theme.spacing(1.25),
+    marginBottom: theme.spacing(1),
   },
-  left: {
-    flexDirection: "row",
+  row: { flexDirection: "row", alignItems: "center", gap: theme.spacing(1) },
+  check: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    borderWidth: 1,
     alignItems: "center",
-  },
-  iconWrapper: {
-    backgroundColor: "#e0e0e0",
-    width: 32,
-    height: 32,
-    borderRadius: 16,
     justifyContent: "center",
-    alignItems: "center",
   },
-  texts: {
-    marginLeft: 12,
+  checkTodo: {
+    backgroundColor: theme.colors.background,
+    borderColor: theme.colors.border,
   },
-  title: {
-    fontSize: 16,
-    fontWeight: "600",
+  checkDone: {
+    backgroundColor: theme.colors.success,
+    borderColor: theme.colors.success,
   },
-  progress: {
-    fontSize: 14,
-    color: "#666",
-    marginTop: 2,
+  checkMark: { color: "#fff", fontWeight: "700" },
+
+  main: { flex: 1 },
+  title: { color: theme.colors.text, fontWeight: "700", fontSize: 16 },
+  subtitle: { marginTop: theme.spacing(0.25) },
+
+  barWrap: {
+    marginTop: theme.spacing(0.75),
+    height: 8,
+    borderRadius: 999,
+    overflow: "hidden",
   },
+  barBg: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: theme.colors.border,
+    borderRadius: 999,
+  },
+  barFg: {
+    height: 8,
+    backgroundColor: theme.colors.primary,
+    borderRadius: 999,
+  },
+
   xp: {
-    fontSize: 16,
-    fontWeight: "600",
+    color: theme.colors.text,
+    fontWeight: "700",
+    marginLeft: theme.spacing(1),
   },
-  iconComplete: {
-    backgroundColor: "#4CAF50", // ✅ green when complete
-  },
-});
+}));

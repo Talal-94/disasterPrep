@@ -57,27 +57,27 @@ export async function getWeatherAlerts(lat: number, lon: number): Promise<Weathe
         }
 
         const data = await response.json();
-        if (!data.alerts) {
-            return [
-                {
-                    sender_name: 'مركز الأرصاد السعودي',
-                    event: 'عاصفة رملية',
-                    start: Date.now() / 1000,
-                    end: (Date.now() + 2 * 60 * 60 * 1000) / 1000,
-                    description: 'رؤية منخفضة بسبب عاصفة رملية متوقعة في المنطقة الشرقية',
-                    tags: ['sandstorm'],
-                },
-                {
-                    sender_name: 'arsad',
-                    event: 'SandStorm',
-                    start: Date.now() / 1000,
-                    end: (Date.now() + 2 * 60 * 60 * 1000) / 1000,
-                    description: 'foggy sandstorm',
-                    tags: ['sandstorm'],
-                },
-            ];
-        }
-        return data.alerts || []; // ✅ alerts may be undefined
+        // if (!data.alerts) {
+        //     return [
+        //         {
+        //             sender_name: 'مركز الأرصاد السعودي',
+        //             event: 'عاصفة رملية',
+        //             start: Date.now() / 1000,
+        //             end: (Date.now() + 2 * 60 * 60 * 1000) / 1000,
+        //             description: 'رؤية منخفضة بسبب عاصفة رملية متوقعة في المنطقة الشرقية',
+        //             tags: ['sandstorm'],
+        //         },
+        //         {
+        //             sender_name: 'arsad',
+        //             event: 'SandStorm',
+        //             start: Date.now() / 1000,
+        //             end: (Date.now() + 2 * 60 * 60 * 1000) / 1000,
+        //             description: 'foggy sandstorm',
+        //             tags: ['sandstorm'],
+        //         },
+        //     ];
+        // }
+        return data.alerts || [];
     } catch (error) {
         console.error('Error fetching weather alerts:', error);
         return [];

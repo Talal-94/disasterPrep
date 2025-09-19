@@ -28,6 +28,7 @@
     "description": "Description"
   },
   "learn": {
+    "title": "Learn",
     "userName": "Weather Explorer",
     "level": "Level {{level}}",
     "xp": "XP",
