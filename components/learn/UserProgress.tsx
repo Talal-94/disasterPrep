@@ -63,7 +63,7 @@ export default function UserProgress({
             ) : null}
           </View>
           <Text style={styles.Attribution} variant="caption">
-            Lottie animation coming from flaticons.com
+            badge Icons made by Freepik from www.flaticon.com
           </Text>
         </>
       ) : null}
