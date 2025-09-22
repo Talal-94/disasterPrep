@@ -1,4 +1,3 @@
-// app/(tabs)/learn/resourcesHub/ResourceDetailScreen.tsx
 import { useEffect, useState } from "react";
 import {
   ScrollView,
@@ -155,6 +154,9 @@ export default function ResourceDetailScreen() {
         {showConfetti && (
           <ConfettiLottie onFinish={() => setShowConfetti(false)} />
         )}
+        <Text style={styles.lottieAttribution} variant="caption">
+          Lottie animation coming from lottiefiles.com
+        </Text>
       </ScrollView>
     </SafeAreaView>
   );
@@ -206,7 +208,6 @@ const styles = StyleSheet.create((theme) => ({
   },
   noQuizText: { fontStyle: "italic", color: theme.colors.muted },
 
-  // quiz rows themed via Card
   quizCard: {
     backgroundColor: theme.colors.card,
     borderColor: theme.colors.border,
@@ -228,4 +229,5 @@ const styles = StyleSheet.create((theme) => ({
   },
 
   cta: { marginTop: theme.spacing(2) },
+  lottieAttribution: { marginVertical: theme.spacing(2) },
 }));

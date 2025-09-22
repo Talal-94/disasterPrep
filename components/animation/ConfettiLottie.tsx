@@ -1,4 +1,3 @@
-// components/animations/ConfettiLottie.tsx
 import LottieView from "lottie-react-native";
 import { useRef, useEffect } from "react";
 import { View, StyleSheet } from "react-native";

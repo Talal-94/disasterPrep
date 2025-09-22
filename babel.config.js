@@ -10,7 +10,6 @@ module.exports = function (api) {
     presets: ["babel-preset-expo"],
     plugins: [
       ["react-native-unistyles/plugin", unistyles],
-      // keep Reanimated last
       "react-native-reanimated/plugin",
     ],
   };

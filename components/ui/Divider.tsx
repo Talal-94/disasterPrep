@@ -1,4 +1,3 @@
-// components/ui/Divider.tsx
 import { View, ViewProps } from "react-native";
 import { StyleSheet } from "react-native-unistyles";
 

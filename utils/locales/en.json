@@ -1,5 +1,6 @@
 {
   "homescreen": {
+    "title": "Home",
     "weatherDetails":"Weather details of the current location will be here",
     "welcome": "Welcome",
     "subtitle": "Hello, {{name}}!"
@@ -9,6 +10,7 @@
     "email": "Email Address",
     "password": "Password",
     "signIn": "Sign In",
+    "forgot": "Forgot password?",
     "loginFailed": "Login Failed",
     "register": "Register",
     "signUp": "Sign Up",
@@ -19,6 +21,7 @@
       "noAccount": "Don't have an account? Register here"
   },
   "alerts": {
+    "title": "Alerts",
     "header": "Weather Alerts",
     "errorPrefix": "⚠️",
     "noAlerts": "No alerts at the moment 🎉",
@@ -42,17 +45,19 @@
     "xpEarned": "XP Earned!",
     "completed": "Completed",
     "finishQuiz": "Finish Quiz",
-    "dailyQuiz": "Daily Quiz",
+    "quizzes": "Quizzes",
     "alreadyCompleted": "Already Completed",
     "quizzesForResource": "Related Quizzes",
     "noQuizzes": "There are no quizzes linked to this guide.",
     "youAlreadyCompletedThisQuiz": "You have already completed this quiz today.",
     "rewards": {
-      "taskComplete": "✅ Task Complete! +{{xp}} XP",
+      "taskComplete": "✅ Task Complete!",
+      "resourceMarked": "✅ Resource Read!",
       "levelUp": "📈 Level Up! You're now Level {{level}}!",
       "badgeUnlocked": "🏅 Badge Unlocked! +{{xp}} XP"
     },
-    "questionProgress": "Question {{current}} of {{total}}"
+    "questionProgress": "Question {{current}} of {{total}}",
+    "guide": "Guide"
     
   },
   "categories": {

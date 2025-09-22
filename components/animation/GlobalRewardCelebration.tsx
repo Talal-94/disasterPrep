@@ -1,4 +1,3 @@
-// components/GlobalRewardCelebration.tsx
 import { useXPStore } from "@/store/xpStore";
 import RewardCelebration from "@/components/animation/RewardCelebration";
 

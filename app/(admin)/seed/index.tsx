@@ -1,17 +1,22 @@
-// app/(admin)/seed/index.tsx
 import React, { useState } from "react";
-import {
-  View,
-  Text,
-  TextInput,
-  Button,
-  ScrollView,
-  StyleSheet,
-  Alert,
-} from "react-native";
+import { View, TextInput, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import firestore, { doc, setDoc } from "@react-native-firebase/firestore";
+import { StyleSheet } from "react-native-unistyles";
 import { router } from "expo-router";
+
+import Screen from "@/components/ui/Screen";
+import Card from "@/components/ui/Card";
+import Text from "@/components/ui/Text";
+import Button from "@/components/ui/Button";
+import Divider from "@/components/ui/Divider";
+
+import { getApp } from "@react-native-firebase/app";
+import {
+  getFirestore,
+  collection,
+  doc,
+  writeBatch,
+} from "@react-native-firebase/firestore";
 
 type Resource = {
   id: string;
@@ -39,7 +44,6 @@ type Quiz = {
 export default function AdminSeedScreen() {
   const [step, setStep] = useState<"resources" | "quizzes">("resources");
 
-  // Resource form state
   const [pendingResources, setPendingResources] = useState<Resource[]>([]);
   const [resForm, setResForm] = useState<Resource>({
     id: "",
@@ -51,7 +55,6 @@ export default function AdminSeedScreen() {
     content: { en: "", ar: "" },
   });
 
-  // Quiz form state
   const [pendingQuizzes, setPendingQuizzes] = useState<Quiz[]>([]);
   const [quizForm, setQuizForm] = useState<Omit<Quiz, "questions">>({
     id: "",
@@ -61,7 +64,11 @@ export default function AdminSeedScreen() {
   const [quizQuestions, setQuizQuestions] = useState<Question[]>([]);
 
   function addResource() {
-    setPendingResources([...pendingResources, resForm]);
+    if (!resForm.id.trim()) {
+      alert("Resource needs an ID");
+      return;
+    }
+    setPendingResources((prev) => [...prev, resForm]);
     setResForm({
       id: "",
       mediaUrl: "",
@@ -74,8 +81,8 @@ export default function AdminSeedScreen() {
   }
 
   function addQuestion() {
-    setQuizQuestions([
-      ...quizQuestions,
+    setQuizQuestions((prev) => [
+      ...prev,
       {
         question: { en: "", ar: "" },
         options: { en: ["", ""], ar: ["", ""] },
@@ -85,8 +92,8 @@ export default function AdminSeedScreen() {
   }
 
   function addOption(qIndex: number) {
-    setQuizQuestions((q) =>
-      q.map((qq, i) =>
+    setQuizQuestions((prev) =>
+      prev.map((qq, i) =>
         i === qIndex
           ? {
               ...qq,
@@ -100,25 +107,55 @@ export default function AdminSeedScreen() {
     );
   }
 
+  function validateQuiz(q: Quiz): string | null {
+    if (!q.id.trim()) return "Quiz needs an ID.";
+    if (!q.resourceId.trim()) return "Quiz needs a resourceId.";
+    if (!q.questions.length) return "Quiz must have at least one question.";
+
+    for (let i = 0; i < q.questions.length; i++) {
+      const qi = q.questions[i];
+      if (!qi.question.en.trim() || !qi.question.ar.trim())
+        return `Question ${i + 1} needs EN/AR text.`;
+      if (qi.options.en.length < 2 || qi.options.ar.length < 2)
+        return `Question ${i + 1} needs at least 2 options in EN/AR.`;
+      if (qi.options.en.length !== qi.options.ar.length)
+        return `Question ${i + 1} options count must match EN/AR.`;
+      if (qi.correctIndex < 0 || qi.correctIndex >= qi.options.en.length)
+        return `Question ${i + 1} has an out-of-range correctIndex.`;
+    }
+    return null;
+  }
+
   async function seedAll() {
-    const db = firestore();
+    const app = getApp();
+    const db = getFirestore(app);
+    const batch = writeBatch(db);
+
     try {
-      // Seed resources
+      // Resources
       for (const r of pendingResources) {
-        await setDoc(doc(db, "resources", r.id), r);
+        const ref = doc(collection(db, "resources"), r.id);
+        batch.set(ref, r, { merge: true });
       }
-      // Seed quizzes
+
+      // Quizzes
       for (const q of pendingQuizzes) {
-        await setDoc(doc(db, "quizzes", q.id), {
-          ...q,
-          questions: quizQuestions,
-        });
+        const err = validateQuiz(q);
+        if (err) {
+          alert(`Invalid quiz "${q.id}": ${err}`);
+          return;
+        }
+        const ref = doc(collection(db, "quizzes"), q.id);
+        batch.set(ref, q, { merge: true });
       }
-      Alert.alert("✅ Seeded to Firestore!");
+
+      await batch.commit();
+
+      alert("✅ Seeded to Firestore!");
       setPendingResources([]);
       setPendingQuizzes([]);
     } catch (e: any) {
-      Alert.alert("❌ Error seeding:", e.message);
+      alert(`❌ Error seeding: ${e?.message ?? String(e)}`);
     }
   }
 
@@ -127,312 +164,363 @@ export default function AdminSeedScreen() {
   }
 
   return (
-    <SafeAreaView style={{ flex: 1 }}>
-      <ScrollView contentContainerStyle={styles.container}>
-        <View style={styles.toggle}>
-          <Button title="Resources" onPress={() => setStep("resources")} />
-          <Button title="Quizzes" onPress={() => setStep("quizzes")} />
-        </View>
+    <Screen>
+      <SafeAreaView style={{ flex: 1 }}>
+        <ScrollView contentContainerStyle={styles.container}>
+          <Card style={styles.switcher}>
+            <View style={styles.toggleRow}>
+              <Button
+                title="Resources"
+                onPress={() => setStep("resources")}
+                variant={step === "resources" ? "primary" : "secondary"}
+              />
+              <Button
+                title="Quizzes"
+                onPress={() => setStep("quizzes")}
+                variant={step === "quizzes" ? "primary" : "secondary"}
+              />
+            </View>
+          </Card>
 
-        {step === "resources" ? (
-          <>
-            <Text style={styles.heading}>Add Resource</Text>
-
-            <TextInput
-              placeholder="ID"
-              value={resForm.id}
-              onChangeText={(id) => setResForm((f) => ({ ...f, id }))}
-              style={styles.input}
-            />
-            <TextInput
-              placeholder="Media URL"
-              value={resForm.mediaUrl}
-              onChangeText={(mediaUrl) =>
-                setResForm((f) => ({ ...f, mediaUrl }))
-              }
-              style={styles.input}
-            />
-            <TextInput
-              placeholder="Hazard Type"
-              value={resForm.hazardType}
-              onChangeText={(hazardType) =>
-                setResForm((f) => ({ ...f, hazardType }))
-              }
-              style={styles.input}
-            />
-            <TextInput
-              placeholder="XP Value"
-              keyboardType="number-pad"
-              value={String(resForm.xpValue)}
-              onChangeText={(t) =>
-                setResForm((f) => ({
-                  ...f,
-                  xpValue: parseInt(t, 10) || 0,
-                }))
-              }
-              style={styles.input}
-            />
-
-            <Text style={styles.subheading}>Title (EN / AR)</Text>
-            <TextInput
-              placeholder="Title EN"
-              value={resForm.title.en}
-              onChangeText={(en) =>
-                setResForm((f) => ({
-                  ...f,
-                  title: { ...f.title, en },
-                }))
-              }
-              style={styles.input}
-            />
-            <TextInput
-              placeholder="Title AR"
-              value={resForm.title.ar}
-              onChangeText={(ar) =>
-                setResForm((f) => ({
-                  ...f,
-                  title: { ...f.title, ar },
-                }))
-              }
-              style={styles.input}
-            />
-
-            <Text style={styles.subheading}>Description (EN / AR)</Text>
-            <TextInput
-              placeholder="Desc EN"
-              value={resForm.description.en}
-              onChangeText={(en) =>
-                setResForm((f) => ({
-                  ...f,
-                  description: { ...f.description, en },
-                }))
-              }
-              style={styles.input}
-            />
-            <TextInput
-              placeholder="Desc AR"
-              value={resForm.description.ar}
-              onChangeText={(ar) =>
-                setResForm((f) => ({
-                  ...f,
-                  description: { ...f.description, ar },
-                }))
-              }
-              style={styles.input}
-            />
-
-            <Text style={styles.subheading}>Content (EN / AR)</Text>
-            <TextInput
-              placeholder="Content EN"
-              multiline
-              value={resForm.content.en}
-              onChangeText={(en) =>
-                setResForm((f) => ({
-                  ...f,
-                  content: { ...f.content, en },
-                }))
-              }
-              style={[styles.input, { height: 80 }]}
-            />
-            <TextInput
-              placeholder="Content AR"
-              multiline
-              value={resForm.content.ar}
-              onChangeText={(ar) =>
-                setResForm((f) => ({
-                  ...f,
-                  content: { ...f.content, ar },
-                }))
-              }
-              style={[styles.input, { height: 80 }]}
-            />
-
-            <Button title="➕ Add to Pending Resources" onPress={addResource} />
-
-            <Text style={styles.heading}>
-              Pending Resources ({pendingResources.length})
-            </Text>
-            {pendingResources.map((r) => (
-              <Text key={r.id} style={styles.listItem}>
-                {r.id}
+          {step === "resources" ? (
+            <Card>
+              <Text variant="title" style={styles.heading}>
+                Add Resource
               </Text>
-            ))}
-          </>
-        ) : (
-          <>
-            <Text style={styles.heading}>Add Quiz</Text>
+              <Divider />
 
-            <TextInput
-              placeholder="ID"
-              value={quizForm.id}
-              onChangeText={(id) => setQuizForm((f) => ({ ...f, id }))}
-              style={styles.input}
-            />
-            <TextInput
-              placeholder="Resource ID"
-              value={quizForm.resourceId}
-              onChangeText={(resourceId) =>
-                setQuizForm((f) => ({ ...f, resourceId }))
-              }
-              style={styles.input}
-            />
-            <TextInput
-              placeholder="XP Reward"
-              keyboardType="number-pad"
-              value={String(quizForm.xpReward)}
-              onChangeText={(t) =>
-                setQuizForm((f) => ({
-                  ...f,
-                  xpReward: parseInt(t, 10) || 0,
-                }))
-              }
-              style={styles.input}
-            />
+              <LabeledInput
+                label="ID"
+                value={resForm.id}
+                onChangeText={(id) => setResForm((f) => ({ ...f, id }))}
+              />
+              <LabeledInput
+                label="Media URL"
+                value={resForm.mediaUrl}
+                onChangeText={(mediaUrl) =>
+                  setResForm((f) => ({ ...f, mediaUrl }))
+                }
+              />
+              <LabeledInput
+                label="Hazard Type"
+                value={resForm.hazardType}
+                onChangeText={(hazardType) =>
+                  setResForm((f) => ({ ...f, hazardType }))
+                }
+              />
+              <LabeledInput
+                label="XP Value"
+                keyboardType="number-pad"
+                value={String(resForm.xpValue)}
+                onChangeText={(t) =>
+                  setResForm((f) => ({
+                    ...f,
+                    xpValue: parseInt(t, 10) || 0,
+                  }))
+                }
+              />
 
-            <Text style={styles.subheading}>
-              Questions ({quizQuestions.length})
-            </Text>
-            {quizQuestions.map((q, i) => (
-              <View key={i} style={styles.questionBlock}>
-                <Text style={{ fontWeight: "600" }}>Question {i + 1}</Text>
-                <TextInput
-                  placeholder="Q EN"
-                  value={q.question.en}
-                  onChangeText={(en) => {
-                    const arr = [...quizQuestions];
-                    arr[i].question.en = en;
-                    setQuizQuestions(arr);
-                  }}
-                  style={styles.input}
-                />
-                <TextInput
-                  placeholder="Q AR"
-                  value={q.question.ar}
-                  onChangeText={(ar) => {
-                    const arr = [...quizQuestions];
-                    arr[i].question.ar = ar;
-                    setQuizQuestions(arr);
-                  }}
-                  style={styles.input}
-                />
+              <Text variant="subtitle" style={styles.subheading}>
+                Title (EN / AR)
+              </Text>
+              <LabeledInput
+                label="Title EN"
+                value={resForm.title.en}
+                onChangeText={(en) =>
+                  setResForm((f) => ({ ...f, title: { ...f.title, en } }))
+                }
+              />
+              <LabeledInput
+                label="Title AR"
+                value={resForm.title.ar}
+                onChangeText={(ar) =>
+                  setResForm((f) => ({ ...f, title: { ...f.title, ar } }))
+                }
+              />
 
-                <Text style={styles.subheading}>Options EN</Text>
-                {q.options.en.map((opt, oi) => (
-                  <TextInput
-                    key={oi}
-                    placeholder={`Option ${oi + 1}`}
-                    value={opt}
-                    onChangeText={(text) => {
+              <Text variant="subtitle" style={styles.subheading}>
+                Description (EN / AR)
+              </Text>
+              <LabeledInput
+                label="Desc EN"
+                value={resForm.description.en}
+                onChangeText={(en) =>
+                  setResForm((f) => ({
+                    ...f,
+                    description: { ...f.description, en },
+                  }))
+                }
+              />
+              <LabeledInput
+                label="Desc AR"
+                value={resForm.description.ar}
+                onChangeText={(ar) =>
+                  setResForm((f) => ({
+                    ...f,
+                    description: { ...f.description, ar },
+                  }))
+                }
+              />
+
+              <Text variant="subtitle" style={styles.subheading}>
+                Content (EN / AR)
+              </Text>
+              <LabeledInput
+                label="Content EN"
+                multiline
+                value={resForm.content.en}
+                onChangeText={(en) =>
+                  setResForm((f) => ({
+                    ...f,
+                    content: { ...f.content, en },
+                  }))
+                }
+                inputStyle={{ height: 100 }}
+              />
+              <LabeledInput
+                label="Content AR"
+                multiline
+                value={resForm.content.ar}
+                onChangeText={(ar) =>
+                  setResForm((f) => ({
+                    ...f,
+                    content: { ...f.content, ar },
+                  }))
+                }
+                inputStyle={{ height: 100 }}
+              />
+
+              <Button
+                title="➕ Add to Pending Resources"
+                onPress={addResource}
+              />
+
+              <Text variant="subtitle" style={styles.heading}>
+                Pending Resources ({pendingResources.length})
+              </Text>
+              {pendingResources.map((r) => (
+                <Text key={r.id} style={styles.listItem}>
+                  {r.id}
+                </Text>
+              ))}
+            </Card>
+          ) : (
+            <Card>
+              <Text variant="title" style={styles.heading}>
+                Add Quiz
+              </Text>
+              <Divider />
+
+              <LabeledInput
+                label="ID"
+                value={quizForm.id}
+                onChangeText={(id) => setQuizForm((f) => ({ ...f, id }))}
+              />
+              <LabeledInput
+                label="Resource ID"
+                value={quizForm.resourceId}
+                onChangeText={(resourceId) =>
+                  setQuizForm((f) => ({ ...f, resourceId }))
+                }
+              />
+              <LabeledInput
+                label="XP Reward"
+                keyboardType="number-pad"
+                value={String(quizForm.xpReward)}
+                onChangeText={(t) =>
+                  setQuizForm((f) => ({
+                    ...f,
+                    xpReward: parseInt(t, 10) || 0,
+                  }))
+                }
+              />
+
+              <Text variant="subtitle" style={styles.subheading}>
+                Questions ({quizQuestions.length})
+              </Text>
+
+              {quizQuestions.map((q, i) => (
+                <Card key={i} style={styles.questionBlock}>
+                  <Text variant="subtitle">Question {i + 1}</Text>
+                  <Divider />
+
+                  <LabeledInput
+                    label="Q EN"
+                    value={q.question.en}
+                    onChangeText={(en) => {
                       const arr = [...quizQuestions];
-                      arr[i].options.en[oi] = text;
+                      arr[i] = {
+                        ...arr[i],
+                        question: { ...arr[i].question, en },
+                      };
                       setQuizQuestions(arr);
                     }}
-                    style={styles.input}
                   />
-                ))}
-                <Text style={styles.subheading}>Options AR</Text>
-                {q.options.ar.map((opt, oi) => (
-                  <TextInput
-                    key={oi}
-                    placeholder={`خيار ${oi + 1}`}
-                    value={opt}
-                    onChangeText={(text) => {
+                  <LabeledInput
+                    label="Q AR"
+                    value={q.question.ar}
+                    onChangeText={(ar) => {
                       const arr = [...quizQuestions];
-                      arr[i].options.ar[oi] = text;
+                      arr[i] = {
+                        ...arr[i],
+                        question: { ...arr[i].question, ar },
+                      };
                       setQuizQuestions(arr);
                     }}
-                    style={styles.input}
                   />
-                ))}
-                <Button title="➕ Add Option" onPress={() => addOption(i)} />
 
-                <Text style={styles.subheading}>Correct Index</Text>
-                <TextInput
-                  placeholder="e.g. 0"
-                  keyboardType="number-pad"
-                  value={String(q.correctIndex)}
-                  onChangeText={(t) => {
-                    const idx = parseInt(t, 10) || 0;
-                    const arr = [...quizQuestions];
-                    arr[i].correctIndex = idx;
-                    setQuizQuestions(arr);
-                  }}
-                  style={styles.input}
-                />
-              </View>
-            ))}
+                  <Text variant="subtitle" style={styles.subheading}>
+                    Options EN
+                  </Text>
+                  {q.options.en.map((opt, oi) => (
+                    <LabeledInput
+                      key={`en-${oi}`}
+                      label={`Option ${oi + 1}`}
+                      value={opt}
+                      onChangeText={(text) => {
+                        const arr = [...quizQuestions];
+                        const en = [...arr[i].options.en];
+                        en[oi] = text;
+                        arr[i] = {
+                          ...arr[i],
+                          options: { ...arr[i].options, en },
+                        };
+                        setQuizQuestions(arr);
+                      }}
+                    />
+                  ))}
 
-            <Button title="➕ Add Question" onPress={addQuestion} />
+                  <Text variant="subtitle" style={styles.subheading}>
+                    Options AR
+                  </Text>
+                  {q.options.ar.map((opt, oi) => (
+                    <LabeledInput
+                      key={`ar-${oi}`}
+                      label={`خيار ${oi + 1}`}
+                      value={opt}
+                      onChangeText={(text) => {
+                        const arr = [...quizQuestions];
+                        const ar = [...arr[i].options.ar];
+                        ar[oi] = text;
+                        arr[i] = {
+                          ...arr[i],
+                          options: { ...arr[i].options, ar },
+                        };
+                        setQuizQuestions(arr);
+                      }}
+                    />
+                  ))}
 
-            <Button
-              title="➕ Add Quiz to Pending"
-              onPress={() => {
-                setPendingQuizzes([
-                  ...pendingQuizzes,
-                  { ...quizForm, questions: quizQuestions },
-                ]);
-                setQuizForm({ id: "", resourceId: "", xpReward: 0 });
-                setQuizQuestions([]);
-              }}
-            />
+                  <Button title="➕ Add Option" onPress={() => addOption(i)} />
 
-            <Text style={styles.heading}>
-              Pending Quizzes ({pendingQuizzes.length})
-            </Text>
-            {pendingQuizzes.map((q) => (
-              <Text key={q.id} style={styles.listItem}>
-                {q.id}
+                  <LabeledInput
+                    label="Correct Index (0-based)"
+                    keyboardType="number-pad"
+                    value={String(q.correctIndex)}
+                    onChangeText={(t) => {
+                      const idx = parseInt(t, 10) || 0;
+                      const arr = [...quizQuestions];
+                      arr[i] = { ...arr[i], correctIndex: idx };
+                      setQuizQuestions(arr);
+                    }}
+                  />
+                </Card>
+              ))}
+
+              <Button
+                style={styles.marginBottom}
+                title="➕ Add Question"
+                onPress={addQuestion}
+              />
+
+              <Button
+                title="➕ Add Quiz to Pending"
+                onPress={() => {
+                  const newQuiz: Quiz = {
+                    id: quizForm.id.trim(),
+                    resourceId: quizForm.resourceId.trim(),
+                    xpReward: quizForm.xpReward,
+                    questions: quizQuestions,
+                  };
+
+                  const err = validateQuiz(newQuiz);
+                  if (err) {
+                    alert(err);
+                    return;
+                  }
+
+                  setPendingQuizzes((prev) => [...prev, newQuiz]);
+                  setQuizForm({ id: "", resourceId: "", xpReward: 0 });
+                  setQuizQuestions([]);
+                }}
+              />
+
+              <Text variant="subtitle" style={styles.heading}>
+                Pending Quizzes ({pendingQuizzes.length})
               </Text>
-            ))}
-          </>
-        )}
+              {pendingQuizzes.map((q) => (
+                <Text key={q.id} style={styles.listItem}>
+                  {q.id}
+                </Text>
+              ))}
+            </Card>
+          )}
 
-        <View style={{ marginVertical: 20 }}>
+          <View style={{ height: 12 }} />
           <Button title="🚀 Seed All Pending to Firestore" onPress={seedAll} />
-        </View>
-        <View style={{ marginVertical: 20 }}>
-          <Button title="go back" onPress={goBack} />
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+          <View style={{ height: 12 }} />
+          <Button title="Go back" variant="secondary" onPress={goBack} />
+        </ScrollView>
+      </SafeAreaView>
+    </Screen>
+  );
+}
+
+function LabeledInput({
+  label,
+  inputStyle,
+  ...props
+}: {
+  label: string;
+  inputStyle?: any;
+} & React.ComponentProps<typeof TextInput>) {
+  return (
+    <View style={{ marginBottom: 10 }}>
+      <Text variant="caption" style={{ marginBottom: 4 }}>
+        {label}
+      </Text>
+      <TextInput
+        {...props}
+        style={[styles.input, inputStyle]}
+        placeholderTextColor="#888"
+      />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { padding: 16 },
-  toggle: {
+  container: { padding: 16, gap: 12 },
+  switcher: { padding: 12 },
+  toggleRow: {
     flexDirection: "row",
-    justifyContent: "space-around",
-    marginBottom: 16,
+    justifyContent: "space-between",
+    gap: 8,
   },
-  heading: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginVertical: 8,
-  },
-  subheading: {
-    fontSize: 14,
-    marginTop: 12,
-    fontWeight: "500",
-  },
+  heading: { marginVertical: 8 },
+  subheading: { marginTop: 12 },
   input: {
     borderWidth: 1,
-    borderColor: "#ccc",
-    padding: 8,
-    marginBottom: 8,
-    borderRadius: 4,
+    borderColor: "#4444",
+    padding: 10,
+    borderRadius: 10,
   },
   listItem: {
-    padding: 4,
-    backgroundColor: "#f0f0f0",
-    marginVertical: 2,
-    borderRadius: 3,
+    paddingVertical: 6,
+    opacity: 0.8,
   },
   questionBlock: {
-    padding: 8,
-    borderWidth: 1,
-    borderColor: "#ddd",
-    marginBottom: 12,
-    borderRadius: 4,
+    marginTop: 10,
+    padding: 12,
   },
+  marginBottom: { marginBottom: 20 },
 });

@@ -1,4 +1,3 @@
-// hooks/usePushNotifications.ts
 import Constants from 'expo-constants';
 import * as Notifications from 'expo-notifications';
 import { useEffect, useState } from 'react';
@@ -10,7 +9,6 @@ export function usePushNotifications(
     const [expoPushToken, setExpoPushToken] = useState<string | null>(null);
 
     useEffect(() => {
-        // Set foreground behavior
         Notifications.setNotificationHandler({
             handleNotification: async () => ({
                 shouldShowAlert: true,
@@ -22,7 +20,6 @@ export function usePushNotifications(
         });
 
 
-        // Register and get token
         async function registerForPush() {
             const { status: existingStatus } = await Notifications.getPermissionsAsync();
             let finalStatus = existingStatus;
@@ -47,7 +44,6 @@ export function usePushNotifications(
             onTokenReceived?.(token);
         }
 
-        // Android channel
         if (Platform.OS === 'android') {
             Notifications.setNotificationChannelAsync('default', {
                 name: 'Default',
@@ -58,12 +54,10 @@ export function usePushNotifications(
 
         registerForPush();
 
-        // Log notification received (foreground)
         const subReceived = Notifications.addNotificationReceivedListener(notification => {
             console.log('📩 Notification received:', notification);
         });
 
-        // Log notification tapped (background)
         const subResponse = Notifications.addNotificationResponseReceivedListener(response => {
             console.log('👆 Notification tapped:', response);
         });

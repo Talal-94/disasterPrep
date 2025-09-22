@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { View, Switch, StatusBar } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -22,23 +22,23 @@ import {
 } from "@/utils/haptics";
 
 const THEME_KEY = "settings.theme";
-const LANG_KEY = "settings.lang";
 
 export default function SettingsScreen() {
   const { t } = useTranslation();
   const isAdmin = true;
-  const [dark, setDark] = React.useState(UnistylesRuntime.themeName === "dark");
-  const [haptics, setHaptics] = React.useState(false);
-  const [lang, setLang] = React.useState<"en" | "ar">(
+  const [dark, setDark] = useState(UnistylesRuntime.themeName === "dark");
+  const [haptics, setHaptics] = useState(false);
+  const [lang, setLang] = useState<"en" | "ar">(
     i18n?.language === "ar" ? "ar" : "en"
   );
 
-  React.useEffect(() => {
+  useEffect(() => {
     (async () => {
       await initHapticsFromStorage();
       setHaptics(isHapticsEnabled());
     })();
   }, []);
+
   React.useEffect(() => {
     const onChange = (lng: string) => setLang(lng === "ar" ? "ar" : "en");
     i18n.on("languageChanged", onChange);
@@ -47,7 +47,7 @@ export default function SettingsScreen() {
     };
   }, []);
 
-  React.useEffect(() => {
+  useEffect(() => {
     (async () => {
       const savedTheme = await AsyncStorage.getItem(THEME_KEY);
       if (savedTheme === "dark" || savedTheme === "light") {
@@ -56,16 +56,6 @@ export default function SettingsScreen() {
         const active = UnistylesRuntime.getTheme();
         UnistylesRuntime.setRootViewBackgroundColor(active.colors.background);
         StatusBar.setBarStyle(active.barStyle);
-      }
-
-      const savedLang = await AsyncStorage.getItem(LANG_KEY);
-      if (savedLang === "en" || savedLang === "ar") {
-        if (savedLang !== i18n.language) {
-          try {
-            await i18n.changeLanguage(savedLang);
-          } catch {}
-        }
-        setLang(savedLang);
       }
     })();
   }, []);
@@ -84,13 +74,12 @@ export default function SettingsScreen() {
     try {
       await changeLanguage(next);
     } catch {}
-    await AsyncStorage.setItem(LANG_KEY, next);
   };
 
   const onToggleHaptics = async (value: boolean) => {
     setHaptics(value);
     await setHapticsEnabled(value);
-    if (value) Haptics.selectionAsync(); // small confirm buzz
+    if (value) Haptics.selectionAsync();
   };
 
   const onLogout = async () => {
@@ -134,14 +123,14 @@ export default function SettingsScreen() {
               title={t("settings.english", "English")}
               variant={lang === "en" ? "primary" : "ghost"}
               onPress={() => onChangeLang("en")}
-              style={styles.halfBtn} // <-- flex:1 instead of full
+              style={styles.halfBtn}
             />
             <View style={styles.spacer} />
             <Button
               title={t("settings.arabic", "العربية")}
               variant={lang === "ar" ? "primary" : "ghost"}
               onPress={() => onChangeLang("ar")}
-              style={styles.halfBtn} // <-- flex:1 instead of full
+              style={styles.halfBtn}
             />
           </View>
         </Card>
@@ -157,10 +146,12 @@ export default function SettingsScreen() {
         </Card>
         {isAdmin && (
           <Card style={styles.card}>
-            <Text variant="subtitle">{t("settings.account", "Account")}</Text>
+            <Text variant="subtitle">
+              {t("settings.adminPanel", "Admin Panel")}
+            </Text>
             <Divider />
             <Button
-              title={t("seed", "Admin Panel")}
+              title={t("settings.adminPanel", "Admin Panel")}
               variant="primary"
               onPress={goToAdmin}
             />
@@ -177,11 +168,10 @@ const styles = StyleSheet.create((theme) => ({
   header: { marginBottom: theme.spacing(2) },
 
   card: {
-    marginBottom: theme.spacing(1.5), // tighter section spacing
-    paddingVertical: theme.spacing(1.5), // keep Card padding from feeling too airy
+    marginBottom: theme.spacing(1.5),
+    paddingVertical: theme.spacing(1.5),
   },
 
-  // a tighter row for switch
   rowTight: {
     marginTop: theme.spacing(1),
     flexDirection: "row",
@@ -197,6 +187,5 @@ const styles = StyleSheet.create((theme) => ({
 
   spacer: { width: theme.spacing(1) },
 
-  // make each language button take half width (no overflow)
   halfBtn: { flex: 1 },
 }));

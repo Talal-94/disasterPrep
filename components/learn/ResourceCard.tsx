@@ -8,8 +8,7 @@ type Props = {
   icon?: React.ReactNode;
   title: string;
   description: string;
-  time: string; // e.g. "34 min read"
-  level: string; // e.g. "First Aid"
+  level: string;
   onPress?: () => void;
 };
 
@@ -17,17 +16,14 @@ export default function ResourceCard({
   icon,
   title,
   description,
-  time,
   level,
   onPress,
 }: Props) {
   return (
     <Card style={styles.card}>
       <Pressable onPress={onPress} style={styles.row}>
-        {/* icon / thumbnail */}
         <View style={styles.avatar}>{icon ?? <Text>📘</Text>}</View>
 
-        {/* content */}
         <View style={styles.content}>
           <Text style={styles.title} numberOfLines={2}>
             {title}
@@ -37,12 +33,6 @@ export default function ResourceCard({
           </Text>
 
           <View style={styles.metaRow}>
-            <Text variant="caption" style={styles.meta}>
-              {time}
-            </Text>
-            <Text variant="caption" style={styles.dot}>
-              {" • "}
-            </Text>
             <Text variant="caption" style={styles.meta}>
               {level}
             </Text>

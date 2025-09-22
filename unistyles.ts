@@ -1,4 +1,3 @@
-// unistyles.ts
 import { StyleSheet } from 'react-native-unistyles';
 
 export const lightTheme = {
@@ -61,7 +60,6 @@ StyleSheet.configure({
     },
 });
 
-// TS augmentation (theme/runtime types everywhere)
 export type AppThemes = typeof appThemes;
 export type AppBreakpoints = typeof breakpoints;
 declare module 'react-native-unistyles' {

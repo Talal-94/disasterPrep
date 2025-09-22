@@ -1,4 +1,3 @@
-// components/ui/Button.tsx
 import React from "react";
 import { Pressable, PressableProps, StyleProp, ViewStyle } from "react-native";
 import { StyleSheet, UnistylesRuntime } from "react-native-unistyles";
@@ -75,8 +74,7 @@ export default function Button({
     ghost: styles.label_ghost,
   }[variant];
 
-  // v3: get current theme via getTheme()
-  const rippleColor = UnistylesRuntime.getTheme().colors.border; // ← fix
+  const rippleColor = UnistylesRuntime.getTheme().colors.border;
 
   return (
     <Pressable

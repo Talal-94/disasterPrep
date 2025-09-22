@@ -1,9 +1,7 @@
-import React from "react";
 import { FlatList, View } from "react-native";
 import { StyleSheet } from "react-native-unistyles";
 import Card from "@/components/ui/Card";
 import Text from "@/components/ui/Text";
-import Animated, { FadeIn } from "react-native-reanimated";
 export default function HourlyForecast({
   data,
   title = "Hourly Forecast",
@@ -13,9 +11,7 @@ export default function HourlyForecast({
 }) {
   return (
     <View style={styles.container}>
-      <Animated.Text style={styles.title} entering={FadeIn.duration(500)}>
-        {title}
-      </Animated.Text>
+      <Text style={styles.title}>{title}</Text>
       <FlatList
         horizontal
         showsHorizontalScrollIndicator={false}

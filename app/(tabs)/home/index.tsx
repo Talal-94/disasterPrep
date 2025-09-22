@@ -15,7 +15,7 @@ import DailyForecast from "@/components/home/DailyForecast";
 import WeatherMetricsGrid from "@/components/home/WeatherMetricsGrid";
 
 export default function HomeScreen() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { location, city, errorMsg } = useLocation();
   const [weather, setWeather] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -68,7 +68,7 @@ export default function HomeScreen() {
     temp: h.temp,
   }));
   const dailyData = daily.slice(0, 5).map((d: any) => ({
-    day: new Date(d.dt * 1000).toLocaleDateString(undefined, {
+    day: new Date(d.dt * 1000).toLocaleDateString(i18n.language, {
       weekday: "short",
     }),
     min: d.temp.min,
@@ -76,7 +76,7 @@ export default function HomeScreen() {
   }));
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <SafeAreaView style={styles.safe} edges={["top", "left", "right"]}>
       <ScrollView contentContainerStyle={styles.content}>
         <CurrentWeatherCard
           city={city || t("homescreen.unknownLocation", "Unknown")}

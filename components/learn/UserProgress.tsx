@@ -1,4 +1,3 @@
-import React from "react";
 import { Image, View } from "react-native";
 import { StyleSheet } from "react-native-unistyles";
 import Card from "@/components/ui/Card";
@@ -6,6 +5,7 @@ import Text from "@/components/ui/Text";
 import Divider from "@/components/ui/Divider";
 import { getLevelBounds, getLevelTitle } from "@/utils/userProgress.utils";
 import { getBadgeIcon } from "../ui/badgeRegistry";
+import i18n from "@/utils/locales/i18n";
 
 type Props = {
   level: number;
@@ -20,10 +20,8 @@ export default function UserProgress({
   nextLevelXP,
   badges,
 }: Props) {
-  // const ratio = nextLevelXP > 0 ? Math.min(xp / nextLevelXP, 1) : 0;
   const { prevCap, nextCap } = getLevelBounds(xp);
   const ratio = Math.max(0, Math.min((xp - prevCap) / (nextCap - prevCap), 1));
-  const toNext = nextCap - xp;
 
   const preview = Array.isArray(badges) ? badges.slice(0, 8) : [];
 
@@ -34,7 +32,9 @@ export default function UserProgress({
           <Text style={styles.levelText}>Lv {level}</Text>
         </View>
         <View style={styles.right}>
-          <Text style={styles.title}>{getLevelTitle(level)}</Text>
+          <Text style={styles.title}>
+            {getLevelTitle(level, i18n.language)}
+          </Text>
           <Text variant="muted" style={styles.subtitle}>
             {xp}/{nextLevelXP} XP
           </Text>
@@ -62,6 +62,9 @@ export default function UserProgress({
               </Text>
             ) : null}
           </View>
+          <Text style={styles.Attribution} variant="caption">
+            Lottie animation coming from flaticons.com
+          </Text>
         </>
       ) : null}
     </Card>
@@ -122,4 +125,5 @@ const styles = StyleSheet.create((theme) => ({
     borderColor: theme.colors.border,
   },
   more: { color: theme.colors.muted },
+  Attribution: { marginVertical: theme.spacing(0.5) },
 }));

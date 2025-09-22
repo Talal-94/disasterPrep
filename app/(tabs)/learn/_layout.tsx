@@ -1,10 +1,10 @@
-// app/(tabs)/learn/_layout.tsx
-import React from "react";
 import { Stack } from "expo-router";
 import { useUnistyles } from "react-native-unistyles";
+import { useTranslation } from "react-i18next";
 
 export default function LearnLayout() {
   const { theme } = useUnistyles();
+  const { t } = useTranslation();
 
   return (
     <Stack
@@ -15,7 +15,10 @@ export default function LearnLayout() {
         contentStyle: { backgroundColor: theme.colors.background },
       }}
     >
-      <Stack.Screen name="index" options={{ headerShown: false }} />
+      <Stack.Screen
+        name="index"
+        options={{ headerShown: false, title: t("learn.title", "Learn") }}
+      />
 
       <Stack.Screen
         name="resourcesHub/index"
@@ -24,11 +27,17 @@ export default function LearnLayout() {
 
       <Stack.Screen
         name="resourcesHub/ResourceDetailScreen"
-        options={{ title: "Guide" }}
+        options={{ title: t("learn.guide") }}
       />
 
-      <Stack.Screen name="quizzes/index" options={{ title: "Quizzes" }} />
-      <Stack.Screen name="quizzes/[id]" options={{ title: "Quiz" }} />
+      <Stack.Screen
+        name="quizzes/index"
+        options={{ title: t("learn.quizzes", "Quizzes") }}
+      />
+      <Stack.Screen
+        name="quizzes/[id]"
+        options={{ title: t("learn.quiz", "Quiz") }}
+      />
     </Stack>
   );
 }

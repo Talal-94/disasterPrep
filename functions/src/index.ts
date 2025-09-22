@@ -1,25 +1,5 @@
-/**
- * Import function triggers from their respective submodules:
- *
- * import {onCall} from "firebase-functions/v2/https";
- * import {onDocumentWritten} from "firebase-functions/v2/firestore";
- *
- * See a full list of supported triggers at https://firebase.google.com/docs/functions
- */
-
-// import {onRequest} from "firebase-functions/v2/https";
-// import * as logger from "firebase-functions/logger";
-
-// Start writing functions
-// https://firebase.google.com/docs/functions/typescript
-
-// export const helloWorld = onRequest((request, response) => {
-//   logger.info("Hello logs!", {structuredData: true});
-//   response.send("Hello from Firebase!");
-// });
 
 
-// functions/src/index.ts
 import * as admin from 'firebase-admin';
 import * as logger from 'firebase-functions/logger';
 import { onSchedule } from 'firebase-functions/v2/scheduler';
@@ -52,22 +32,6 @@ type DeviceTokenEntry = {
     lon: number;
 };
 
-// async function sendExpoPushNotification(token: string, title: string, body: string) {
-//     await fetch('https://exp.host/--/api/v2/push/send', {
-//         method: 'POST',
-//         headers: {
-//             Accept: 'application/json',
-//             'Accept-Encoding': 'gzip, deflate',
-//             'Content-Type': 'application/json',
-//         },
-//         body: JSON.stringify({
-//             to: token,
-//             sound: 'default',
-//             title,
-//             body,
-//         }),
-//     });
-// }
 
 
 async function getWeatherAlerts(lat: number, lon: number): Promise<WeatherAlert[]> {
@@ -107,7 +71,7 @@ export const notifyAlerts = onSchedule('every 24 hours', async () => {
         const data = doc.data();
         return {
             id: doc.id,
-            token: data.token, // This should be an Expo Push Token (e.g. starts with "ExponentPushToken[...]")
+            token: data.token,
             lat: data.lat,
             lon: data.lon,
         };
@@ -119,7 +83,6 @@ export const notifyAlerts = onSchedule('every 24 hours', async () => {
         if (alerts.length > 0) {
             const firstAlert = alerts[0];
 
-            // ✅ Send via Expo Push API 
             const response = await fetch('https://exp.host/--/api/v2/push/send', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },

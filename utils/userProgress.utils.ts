@@ -1,10 +1,16 @@
-export function getLevelTitle(level: number) {
-  const titles = [
+export function getLevelTitle(level: number, lang: string) {
+  const titles = lang.startsWith("en") ? [
     "Disaster Explorer",
     "Disaster Aware",
     "Prepared Rookie",
     "Disaster Prepared",
     "Risk Responder",
+  ] : [
+    "مستكشف الكوارث",
+    "واعٍ بالمخاطر",
+    "مبتدئ مُستعد",
+    "مستعد للكوارث",
+    "مستجيب للمخاطر",
   ];
   return titles[Math.min(level - 1, titles.length - 1)];
 }

@@ -8,10 +8,12 @@ import {
   subscribeHaptics,
   hapticSelection,
 } from "@/utils/haptics";
+import { useTranslation } from "react-i18next";
 
 export default function TabsLayout() {
   const { theme } = useUnistyles();
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
 
   useEffect(() => {
     let unsub = () => {};
@@ -41,7 +43,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="home"
         options={{
-          title: "home",
+          title: t("homescreen.title", "Home"),
           tabBarIcon: ({ color, size }) => (
             <ThemedIcon name="home" size={size} color={color} />
           ),
@@ -50,7 +52,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="alerts"
         options={{
-          title: "alerts",
+          title: t("alerts.title", "Alerts"),
           tabBarIcon: ({ color, size }) => (
             <ThemedIcon name="alert-circle" size={size} color={color} />
           ),
@@ -59,7 +61,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="learn"
         options={{
-          title: "learn",
+          title: t("learn.title", "Learn"),
           tabBarIcon: ({ color, size }) => (
             <ThemedIcon name="book" size={size} color={color} />
           ),
@@ -68,7 +70,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="settings"
         options={{
-          title: "settings",
+          title: t("settings.title", "Settings"),
           tabBarIcon: ({ color, size }) => (
             <ThemedIcon name="settings" size={size} color={color} />
           ),

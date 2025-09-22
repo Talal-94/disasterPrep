@@ -1,5 +1,3 @@
-// app/(tabs)/learn/resourcesHub/index.tsx
-
 import { useState, useEffect, useCallback } from "react";
 import {
   View,
@@ -111,7 +109,6 @@ export default function ResourcesHubScreen() {
               ? localizedContent.slice(0, 60) + "…"
               : ""
           }
-          time={`${Math.ceil(localizedContent.length / 20)} min read`}
           level={t(`categories.${item.hazardType}`)}
           onPress={() =>
             router.push({

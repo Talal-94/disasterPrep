@@ -1,4 +1,3 @@
-// components/ui/Input.tsx
 import React from "react";
 import {
   TextInput,
@@ -14,7 +13,6 @@ type Props = TextInputProps & { containerStyle?: StyleProp<ViewStyle> };
 export default function Input({ style, containerStyle, ...rest }: Props) {
   const [focused, setFocused] = React.useState(false);
 
-  // Read theme at render-time (no re-renders on theme change needed here)
   const theme = UnistylesRuntime.getTheme();
 
   return (

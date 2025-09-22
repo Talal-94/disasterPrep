@@ -14,7 +14,6 @@ export default function QuizzesListScreen() {
   const router = useRouter();
   const [quizzes, setQuizzes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  // const [refreshing, setRefreshing] = useState(false);
 
   const load = useCallback(async () => {
     try {

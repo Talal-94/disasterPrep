@@ -1,4 +1,3 @@
-// components/ui/OptionButton.tsx
 import React from "react";
 import { Pressable, PressableProps, ViewStyle, StyleProp } from "react-native";
 import { StyleSheet } from "react-native-unistyles";

@@ -113,7 +113,6 @@ export default function LearnScreen() {
           icon={<Text>📘</Text>}
           title={item.title[i18n.language]}
           description={localizedContent.slice(0, 60) + "…"}
-          time={`${Math.ceil(localizedContent.length / 20)} min read`}
           level={t(`categories.${item.hazardType}`)}
           onPress={() =>
             router.push({
@@ -148,7 +147,7 @@ export default function LearnScreen() {
 
   const ListFooter = () => (
     <View style={styles.footer}>
-      <Text style={styles.sectionTitle}>{t("learn.dailyQuiz")}</Text>
+      <Text style={styles.sectionTitle}>{t("learn.quizzes")}</Text>
 
       <Button
         title={t("learn.startQuiz")}
@@ -191,9 +190,6 @@ export default function LearnScreen() {
     <>
       <SafeAreaView style={styles.safe} edges={["top", "left", "right"]}>
         <Screen padded={false}>
-          {/* <Text variant="title" style={[styles.header, styles.listContent]}>
-            {t("learn.title")}
-          </Text> */}
           <FlatList
             data={resources}
             renderItem={renderResource}

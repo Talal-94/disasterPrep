@@ -1,4 +1,3 @@
-// app/(auth)/register.tsx
 import React from "react";
 import { KeyboardAvoidingView, Platform, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";

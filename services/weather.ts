@@ -1,38 +1,3 @@
-// // src/api/weather.ts
-// const OPEN_WEATHER_KEY = '7f56d094d9a9878d31fabc09e5465caa';
-
-// export async function getWeatherAlerts(lat: number, lon: number) {
-//     const response = await fetch(
-//         `https://api.openweathermap.org/data/3.0/onecall?lat=${lat}&lon=${lon}&appid=${OPEN_WEATHER_KEY}&units=metric`
-//     );
-
-//     if (!response.ok) throw new Error('Weather API error');
-
-//     const data = await response.json();
-//     return data.alerts || [];
-// }
-
-
-// export async function fetchNCMAlerts() {
-//     try {
-//         const response = await fetch('https://api.ncm.gov.sa/api/weather/getnotifications');
-//         if (!response.ok) {
-//             const errorText = await response.text();
-//             console.warn('NCM API error:', errorText);
-//             return [];
-//         }
-
-//         const data = await response.json();
-//         console.log(data)
-//         return data || [];
-//     } catch (error) {
-//         console.error('Error fetching NCM alerts:', error);
-//         return [];
-//     }
-// }
-
-
-// services/weather.ts
 
 const API_KEY = '563929087b7193e4999b96d6eac65604'
 const BASE_URL = 'https://api.openweathermap.org/data/3.0/onecall';
@@ -46,8 +11,8 @@ type WeatherAlert = {
     tags: string[];
 };
 
-export async function getWeatherAlerts(lat: number, lon: number): Promise<WeatherAlert[]> {
-    const url = `${BASE_URL}?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=metric`;
+export async function getWeatherAlerts(lat: number, lon: number, lang: string): Promise<WeatherAlert[]> {
+    const url = `${BASE_URL}?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=metric&lang=${lang}`;
 
     try {
         const response = await fetch(url);

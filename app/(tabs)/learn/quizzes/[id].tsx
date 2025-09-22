@@ -1,4 +1,3 @@
-// app/(tabs)/learn/quizzes/[id].tsx
 import { useEffect, useState, useRef } from "react";
 import { View, ActivityIndicator, Pressable } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -22,7 +21,7 @@ type Question = {
 type QuizDoc = {
   id?: string;
   questions: Question[];
-  xpReward?: number; // <-- doc-level XP
+  xpReward?: number;
   resourceId?: string;
 };
 
@@ -83,7 +82,6 @@ export default function QuizDetailScreen() {
   const currentQ = questions[currentIndex];
   const langKey = i18n.language.split("-")[0];
 
-  // options normalize
   let optsArray: string[] = [];
   if (currentQ.options) {
     if (
@@ -106,7 +104,6 @@ export default function QuizDetailScreen() {
 
   const questionText = currentQ.question[langKey] ?? currentQ.question.en ?? "";
 
-  // ✅ Use doc-level xpReward; coerce to number
   const quizXp = Number(quizData.xpReward ?? 0);
 
   const handleAnswer = async (selected: number) => {
@@ -134,7 +131,6 @@ export default function QuizDetailScreen() {
       return;
     }
 
-    // Final answer: check full quiz
     const allCorrect = [...results, isCorrect].every(Boolean);
 
     if (allCorrect) {
@@ -223,12 +219,14 @@ export default function QuizDetailScreen() {
           ))
         )}
 
-        {/* Confetti overlay above everything */}
         {showConfetti && (
           <View pointerEvents="none" style={styles.overlay}>
             <ConfettiLottie onFinish={handleConfettiFinish} />
           </View>
         )}
+        <Text style={styles.lottieAttribution} variant="caption">
+          Lottie animation coming from lottiefiles.com
+        </Text>
       </View>
     </SafeAreaView>
   );
@@ -290,4 +288,5 @@ const styles = StyleSheet.create((theme) => ({
     marginTop: theme.spacing(1),
     textAlign: "center",
   },
+  lottieAttribution: { marginVertical: theme.spacing(2) },
 }));

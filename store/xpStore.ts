@@ -1,4 +1,3 @@
-// store/xpStore.ts
 import i18n from "@/utils/locales/i18n";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { create } from "zustand";
@@ -27,12 +26,10 @@ interface XPState {
   setCompletedTasks: (ids: string[]) => void;
   addCompletedTask: (id: string) => void;
 
-  // 👇 NEW: reward UI trigger
   rewardEvent: null | { type: "task" | "level" | "badge"; message: string };
   triggerReward: (event: { type: "task" | "level" | "badge"; message: string }) => void;
   clearReward: () => void;
 
-  // Reset everything back to defaults
   reset: () => void;
 }
 
@@ -75,28 +72,23 @@ export const useXPStore = create<XPState>()(
           return { xp: newXP, level: newLevel };
         }),
 
-      // Badge actions
       setBadges: (badges) => set({ badges }),
       addBadge: (badge) => set((state) => ({ badges: [...state.badges, badge] })),
 
-      // Resource actions
       setCompletedResources: (ids) => set({ completedResources: ids }),
       addCompletedResource: (id) =>
         set((state) => ({
           completedResources: [...state.completedResources, id],
         })),
 
-      // Quiz actions
       setCompletedQuizzes: (ids) => set({ completedQuizzes: ids }),
       addCompletedQuiz: (id) =>
         set((state) => ({ completedQuizzes: [...state.completedQuizzes, id] })),
 
-      // Task actions
       setCompletedTasks: (ids) => set({ completedTasks: ids }),
       addCompletedTask: (id) =>
         set((state) => ({ completedTasks: [...state.completedTasks, id] })),
 
-      // Reset local store to defaults
       reset: () =>
         set({
           xp: 0,
